@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- 추가 팔레트 4종 (나이트) -->
+
+    <!-- 라벤더 퍼플 (pa) 나이트 -->
+    <color name="pa_toolbar">#FF170A20</color>
+    <color name="pa_accent">#FFB98FE0</color>
+    <color name="pa_accent_soft">#33B98FE0</color>
+    <color name="pa_bg">#FF0F0A14</color>
+    <color name="pa_surface">#FF1A1220</color>
+    <color name="pa_section">#FF221829</color>
+    <color name="pa_stroke">#FF2E2238</color>
+    <color name="pa_text_primary">#FFEFE4F4</color>
+    <color name="pa_text_secondary">#FFC2AFC9</color>
+    <color name="pa_text_muted">#FF8B7A94</color>
+    <color name="pa_divider">#FF2A1F32</color>
+    <color name="pa_on_selected">#FF170A20</color>
+    <color name="pa_cal_normal">#FFEDE2F2</color>
+    <color name="pa_cal_outside">#FF564A5E</color>
+    <color name="pa_cal_lunar">#FF9C8BA6</color>
+    <color name="pa_cal_grid">#FF6E5E78</color>
+    <color name="pa_today_ring">#FFB98FE0</color>
+    <color name="pa_mood_bg">#FF33203E</color>
+
+    <!-- 선셋 오렌지 (pu) 나이트 -->
+    <color name="pu_toolbar">#FF1C0E04</color>
+    <color name="pu_accent">#FFEFB35C</color>
+    <color name="pu_accent_soft">#33EFB35C</color>
+    <color name="pu_bg">#FF120D08</color>
+    <color name="pu_surface">#FF1C1712</color>
+    <color name="pu_section">#FF251E15</color>
+    <color name="pu_stroke">#FF33291B</color>
+    <color name="pu_text_primary">#FFF6ECE0</color>
+    <color name="pu_text_secondary">#FFCBB8A0</color>
+    <color name="pu_text_muted">#FF9C8A72</color>
+    <color name="pu_divider">#FF2C241A</color>
+    <color name="pu_on_selected">#FF1C0E04</color>
+    <color name="pu_cal_normal">#FFF4E8D8</color>
+    <color name="pu_cal_outside">#FF5E5240</color>
+    <color name="pu_cal_lunar">#FFA89880</color>
+    <color name="pu_cal_grid">#FF7A6A52</color>
+    <color name="pu_today_ring">#FFEFB35C</color>
+    <color name="pu_mood_bg">#FF3E2C14</color>
+
+    <!-- 다크 그린 (pd) : 나이트도 동일 (고정 다크) -->
+    <color name="pd_toolbar">#FF04120C</color>
+    <color name="pd_accent">#FF4CD4A8</color>
+    <color name="pd_accent_soft">#334CD4A8</color>
+    <color name="pd_bg">#FF0A0F0D</color>
+    <color name="pd_surface">#FF131A17</color>
+    <color name="pd_section">#FF1A2420</color>
+    <color name="pd_stroke">#FF243129</color>
+    <color name="pd_text_primary">#FFE6F2EC</color>
+    <color name="pd_text_secondary">#FFA9BCB2</color>
+    <color name="pd_text_muted">#FF7A8E84</color>
+    <color name="pd_divider">#FF202B26</color>
+    <color name="pd_on_selected">#FF04120C</color>
+    <color name="pd_cal_normal">#FFE0EDE6</color>
+    <color name="pd_cal_outside">#FF47564F</color>
+    <color name="pd_cal_lunar">#FF7C8F86</color>
+    <color name="pd_cal_grid">#FF32423A</color>
+    <color name="pd_today_ring">#FF4CD4A8</color>
+    <color name="pd_mood_bg">#FF14342A</color>
+
+    <!-- 미드나잇 블루 (pe) : 나이트도 동일 (고정 다크) -->
+    <color name="pe_toolbar">#FF020810</color>
+    <color name="pe_accent">#FF5B9BFF</color>
+    <color name="pe_accent_soft">#335B9BFF</color>
+    <color name="pe_bg">#FF070B12</color>
+    <color name="pe_surface">#FF10151D</color>
+    <color name="pe_section">#FF171D28</color>
+    <color name="pe_stroke">#FF222A38</color>
+    <color name="pe_text_primary">#FFE8EEF6</color>
+    <color name="pe_text_secondary">#FFA9B6C6</color>
+    <color name="pe_text_muted">#FF78859A</color>
+    <color name="pe_divider">#FF1F2733</color>
+    <color name="pe_on_selected">#FF020810</color>
+    <color name="pe_cal_normal">#FFE2EAF4</color>
+    <color name="pe_cal_outside">#FF47536A</color>
+    <color name="pe_cal_lunar">#FF7C8AA0</color>
+    <color name="pe_cal_grid">#FF33405A</color>
+    <color name="pe_today_ring">#FF5B9BFF</color>
+    <color name="pe_mood_bg">#FF14233C</color>
+</resources>

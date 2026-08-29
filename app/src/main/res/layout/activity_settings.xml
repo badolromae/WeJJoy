@@ -1,0 +1,320 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="?android:attr/colorBackground"
+    android:orientation="vertical">
+
+    <com.google.android.material.appbar.MaterialToolbar
+        android:id="@+id/toolbarSettings"
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"
+        android:background="?attr/appToolbar"
+        android:theme="@style/ThemeOverlay.MaterialComponents.Dark.ActionBar"
+        app:title="설정"
+        app:titleTextColor="@color/white" />
+
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <!-- 공유 다이어리 -->
+            <com.google.android.material.card.MaterialCardView
+                style="@style/SettingsCard">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <TextView style="@style/SettingsHeader" android:text="공유 다이어리" />
+
+                    <TextView
+                        android:id="@+id/tvShareStatus"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="8dp"
+                        android:text="아직 그룹에 연결되지 않았습니다."
+                        android:textColor="?attr/colorOnSurfaceVariant"
+                        android:textSize="13sp" />
+
+                    <!-- 연결 전: 그룹 만들기 / 코드로 참여 -->
+                    <LinearLayout
+                        android:id="@+id/layoutShareJoin"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginBottom="4dp"
+                            android:text="별명은 그룹에서 상대에게 보이는 내 이름입니다."
+                            android:textColor="?attr/appTextMuted"
+                            android:textSize="12sp" />
+
+                        <EditText
+                            android:id="@+id/etShareNickname"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:hint="내 별명"
+                            android:inputType="textPersonName"
+                            android:maxLength="20"
+                            android:textColor="?attr/colorOnSurface"
+                            android:textColorHint="?attr/appTextMuted" />
+
+                        <EditText
+                            android:id="@+id/etJoinCode"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:hint="초대 코드 6자리 (공유자로 참여할 때)"
+                            android:inputType="number"
+                            android:maxLength="6"
+                            android:textColor="?attr/colorOnSurface"
+                            android:textColorHint="?attr/appTextMuted" />
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="8dp"
+                            android:orientation="horizontal">
+
+                            <com.google.android.material.button.MaterialButton
+                                android:id="@+id/btnCreateGroup"
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_marginEnd="6dp"
+                                android:layout_weight="1"
+                                android:text="그룹 만들기 (관리자)"
+                                android:textSize="13sp" />
+
+                            <com.google.android.material.button.MaterialButton
+                                android:id="@+id/btnJoinGroup"
+                                style="@style/Widget.Material3.Button.OutlinedButton"
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:text="코드로 참여"
+                                android:textSize="13sp" />
+                        </LinearLayout>
+                    </LinearLayout>
+
+                    <!-- 연결 후: 코드 + 공유자 목록 -->
+                    <LinearLayout
+                        android:id="@+id/layoutShareConnected"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:visibility="gone">
+
+                        <LinearLayout
+                            android:id="@+id/layoutAdminTools"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:id="@+id/tvJoinCode"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:padding="8dp"
+                                android:textColor="?attr/colorPrimary"
+                                android:textSize="15sp"
+                                android:textStyle="bold" />
+
+                            <com.google.android.material.button.MaterialButton
+                                android:id="@+id/btnRegenCode"
+                                style="@style/Widget.Material3.Button.OutlinedButton"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:text="초대 코드 재발급"
+                                android:textSize="13sp" />
+
+                            <TextView
+                                style="@style/SettingsSubLabel"
+                                android:text="공유자 목록" />
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:id="@+id/layoutMembers"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical" />
+                    </LinearLayout>
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- 디자인 -->
+            <com.google.android.material.card.MaterialCardView
+                style="@style/SettingsCard">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <TextView style="@style/SettingsHeader" android:text="디자인" />
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="4dp"
+                        android:text="앱과 위젯의 색이 함께 바뀝니다. (다이어리 내용은 디자인과 상관없이 모두 같습니다)"
+                        android:textColor="?attr/appTextMuted"
+                        android:textSize="12sp" />
+
+                    <RadioGroup
+                        android:id="@+id/radioTheme"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical">
+
+                        <RadioButton android:id="@+id/rbThemeGreen" android:layout_width="match_parent"
+                            android:layout_height="wrap_content" android:text="딥그린" />
+                        <RadioButton android:id="@+id/rbThemeBlue" android:layout_width="match_parent"
+                            android:layout_height="wrap_content" android:text="스카이블루" />
+                        <RadioButton android:id="@+id/rbThemePink" android:layout_width="match_parent"
+                            android:layout_height="wrap_content" android:text="연핑크" />
+                        <RadioButton android:id="@+id/rbThemeMono" android:layout_width="match_parent"
+                            android:layout_height="wrap_content" android:text="블랙 + 그레이" />
+                        <RadioButton android:id="@+id/rbThemePurple" android:layout_width="match_parent"
+                            android:layout_height="wrap_content" android:text="라벤더 퍼플" />
+                        <RadioButton android:id="@+id/rbThemeSunset" android:layout_width="match_parent"
+                            android:layout_height="wrap_content" android:text="선셋 오렌지" />
+                        <RadioButton android:id="@+id/rbThemeDark" android:layout_width="match_parent"
+                            android:layout_height="wrap_content" android:text="다크 그린 (항상 어둡게)" />
+                        <RadioButton android:id="@+id/rbThemeMidnight" android:layout_width="match_parent"
+                            android:layout_height="wrap_content" android:text="미드나잇 블루 (항상 어둡게)" />
+                    </RadioGroup>
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- 알림 -->
+            <com.google.android.material.card.MaterialCardView
+                style="@style/SettingsCard">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <TextView style="@style/SettingsHeader" android:text="알림" />
+
+                    <com.google.android.material.switchmaterial.SwitchMaterial
+                        android:id="@+id/switchDaily"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="매일 일기 알림"
+                        android:textColor="?attr/colorOnSurface"
+                        android:textSize="15sp" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnDailyTime"
+                        style="@style/Widget.Material3.Button.OutlinedButton"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:gravity="start|center_vertical"
+                        android:text="매일 알림 시간: 오후 10:00"
+                        app:icon="@drawable/ic_time"
+                        app:iconGravity="textStart" />
+
+                    <TextView
+                        style="@style/SettingsSubLabel"
+                        android:text="알림 방식" />
+
+                    <RadioGroup
+                        android:id="@+id/radioNotifyStyle"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content">
+
+                        <RadioButton android:id="@+id/rbBoth" android:layout_width="match_parent"
+                            android:layout_height="wrap_content" android:text="소리 + 진동"
+                            android:textColor="?attr/colorOnSurface" />
+                        <RadioButton android:id="@+id/rbSound" android:layout_width="match_parent"
+                            android:layout_height="wrap_content" android:text="소리만"
+                            android:textColor="?attr/colorOnSurface" />
+                        <RadioButton android:id="@+id/rbVibrate" android:layout_width="match_parent"
+                            android:layout_height="wrap_content" android:text="진동만"
+                            android:textColor="?attr/colorOnSurface" />
+                        <RadioButton android:id="@+id/rbSilent" android:layout_width="match_parent"
+                            android:layout_height="wrap_content" android:text="무음"
+                            android:textColor="?attr/colorOnSurface" />
+                    </RadioGroup>
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- 보안 -->
+            <com.google.android.material.card.MaterialCardView
+                style="@style/SettingsCard">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <TextView style="@style/SettingsHeader" android:text="보안 잠금" />
+
+                    <com.google.android.material.switchmaterial.SwitchMaterial
+                        android:id="@+id/switchLock"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="앱 잠금 사용 (PIN)"
+                        android:textColor="?attr/colorOnSurface"
+                        android:textSize="15sp" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnChangePin"
+                        style="@style/Widget.Material3.Button.OutlinedButton"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:gravity="start|center_vertical"
+                        android:text="PIN 설정 / 변경"
+                        app:icon="@drawable/ic_lock"
+                        app:iconGravity="textStart" />
+
+                    <com.google.android.material.switchmaterial.SwitchMaterial
+                        android:id="@+id/switchBiometric"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:text="지문 / 얼굴 인식 사용"
+                        android:textColor="?attr/colorOnSurface"
+                        android:textSize="15sp" />
+
+                    <TextView
+                        android:id="@+id/tvBiometricHint"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:text="지문 또는 얼굴 인식으로도 잠금을 해제합니다."
+                        android:textColor="?attr/appTextMuted"
+                        android:textSize="12sp" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <TextView
+                android:id="@+id/tvVersion"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:gravity="center"
+                android:text="WeJJoy v1.0"
+                android:textColor="?attr/appTextMuted"
+                android:textSize="12sp" />
+        </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
+</LinearLayout>
