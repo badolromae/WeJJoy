@@ -11,16 +11,16 @@ package com.jooshin.diary.sync
 object FirebaseConfig {
 
     /** 프로젝트 ID   예) wejjoy-1a2b3 */
-    const val PROJECT_ID = ""
+    const val PROJECT_ID = "wejjoy-7f100"
 
     /** 앱 ID        예) 1:123456789012:android:abcdef1234567890 */
-    const val APPLICATION_ID = ""
+    const val APPLICATION_ID = "1:687152872259:android:1bd630a2769c4131f3cdf6"
 
     /** 웹 API 키     예) AIzaSyD-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx */
-    const val API_KEY = ""
+    const val API_KEY = "AIzaSyAyxHjx4oN02oreq0s1fvGSepPkPDGRem8"
 
     /** 실시간 데이터베이스 주소  예) https://wejjoy-1a2b3-default-rtdb.asia-southeast1.firebasedatabase.app */
-    const val DATABASE_URL = ""
+    const val DATABASE_URL = "https://wejjoy-7f100-default-rtdb.asia-southeast1.firebasedatabase.app"
 
     /** 4칸이 모두 채워졌는가 */
     fun isFilled(): Boolean =
