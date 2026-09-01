@@ -1,7 +1,9 @@
 package com.jooshin.diary.sync
 
 import android.content.Context
+import android.net.Uri
 import android.util.Log
+import com.google.android.gms.tasks.Tasks
 import com.google.firebase.FirebaseApp
 import com.google.firebase.FirebaseOptions
 import com.google.firebase.auth.FirebaseAuth
@@ -11,11 +13,15 @@ import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
+import com.google.firebase.storage.FirebaseStorage
+import com.google.firebase.storage.StorageReference
 import com.jooshin.diary.data.AppDatabase
 import com.jooshin.diary.data.DiaryEntry
 import com.jooshin.diary.notify.ReminderScheduler
+import com.jooshin.diary.util.ImageStore
 import com.jooshin.diary.util.Prefs
 import com.jooshin.diary.widget.WidgetUpdater
+import java.io.File
 import java.util.concurrent.Executors
 
 /** 공유 그룹 구성원 */
@@ -44,7 +50,9 @@ data class Member(
  * - 그 위에서 파이어베이스가 "바뀐 내용만" 서로 주고받는다.
  * - 같은 일기인지는 [DiaryEntry.uid] 로 구분하고, 충돌하면 나중에 고친 쪽이 이긴다.
  *
- * 사진은 폰 안에만 저장되므로 공유되지 않는다. (글·시간·태그·중요도·기분은 모두 공유됨)
+ * 글·시간·태그·중요도·기분은 항상 공유된다.
+ * 사진은 기본적으로는 폰 안에만 저장되지만, [FirebaseConfig.STORAGE_BUCKET] 이 설정돼
+ * Storage 가 켜져 있으면 함께 올리고/내려받아 공유된다. (설정 안 하면 지금처럼 사진 제외)
  */
 object SyncManager {
 
@@ -82,14 +90,17 @@ object SyncManager {
         fbApp?.let { return it }
         return try {
             val existing = runCatching { FirebaseApp.getInstance(APP_NAME) }.getOrNull()
+            val optionsBuilder = FirebaseOptions.Builder()
+                .setProjectId(FirebaseConfig.PROJECT_ID.trim())
+                .setApplicationId(FirebaseConfig.APPLICATION_ID.trim())
+                .setApiKey(FirebaseConfig.API_KEY.trim())
+                .setDatabaseUrl(FirebaseConfig.DATABASE_URL.trim())
+            if (FirebaseConfig.isStorageFilled()) {
+                optionsBuilder.setStorageBucket(FirebaseConfig.STORAGE_BUCKET.trim())
+            }
             val app = existing ?: FirebaseApp.initializeApp(
                 ctx.applicationContext,
-                FirebaseOptions.Builder()
-                    .setProjectId(FirebaseConfig.PROJECT_ID.trim())
-                    .setApplicationId(FirebaseConfig.APPLICATION_ID.trim())
-                    .setApiKey(FirebaseConfig.API_KEY.trim())
-                    .setDatabaseUrl(FirebaseConfig.DATABASE_URL.trim())
-                    .build(),
+                optionsBuilder.build(),
                 APP_NAME
             )
             runCatching { FirebaseDatabase.getInstance(app).setPersistenceEnabled(true) }
@@ -129,6 +140,57 @@ object SyncManager {
         val r = FirebaseDatabase.getInstance(app).reference.child("groups").child(code)
         root = r
         return r
+    }
+
+    // ------------------------------------------------------------------
+    // 사진 저장소(Storage) — STORAGE_BUCKET 이 설정된 경우에만 동작
+    // ------------------------------------------------------------------
+
+    private fun storageRoot(ctx: Context, code: String): StorageReference? {
+        if (!FirebaseConfig.isStorageFilled() || code.isEmpty()) return null
+        val app = ensureApp(ctx) ?: return null
+        return try {
+            FirebaseStorage.getInstance(app).reference.child("groups").child(code).child("photos")
+        } catch (t: Throwable) {
+            Log.w(TAG, "사진 저장소 참조 실패", t)
+            null
+        }
+    }
+
+    /** 사진 한 장을 서버로 올린다. (없으면 새로, 있으면 덮어씀) 실패해도 조용히 넘어간다. */
+    private fun uploadPhoto(ctx: Context, code: String, name: String) {
+        val ref = storageRoot(ctx, code)?.child(name) ?: return
+        val file = ImageStore.file(ctx, name)
+        if (!file.exists()) return
+        runCatching {
+            ref.putFile(Uri.fromFile(file))
+                .addOnFailureListener { Log.w(TAG, "사진 업로드 실패: $name", it) }
+        }.onFailure { Log.w(TAG, "사진 업로드 실패: $name", it) }
+    }
+
+    /** 사진을 서버에서 지운다. (그룹 미설정/Storage 미설정이면 아무 일도 하지 않는다) */
+    fun deletePhoto(ctx: Context, name: String) {
+        val code = Prefs.groupCode(ctx)
+        val ref = storageRoot(ctx, code)?.child(name) ?: return
+        ref.delete().addOnFailureListener { Log.w(TAG, "사진 삭제(서버) 실패: $name", it) }
+    }
+
+    /** 내 폰에 없는 사진들만 서버에서 받아온다. (호출한 스레드를 그대로 사용해 순서대로 내려받음) */
+    private fun downloadMissingPhotos(ctx: Context, code: String, names: List<String>) {
+        if (names.isEmpty()) return
+        val root = storageRoot(ctx, code) ?: return
+        for (name in names) {
+            val local = ImageStore.file(ctx, name)
+            if (local.exists()) continue
+            val tmp = File(ImageStore.dir(ctx), "$name.part")
+            try {
+                Tasks.await(root.child(name).getFile(tmp))
+                tmp.renameTo(local)
+            } catch (t: Throwable) {
+                Log.w(TAG, "사진 내려받기 실패: $name", t)
+                runCatching { tmp.delete() }
+            }
+        }
     }
 
     // ------------------------------------------------------------------
@@ -370,23 +432,28 @@ object SyncManager {
     // 일기 주고받기
     // ------------------------------------------------------------------
 
-    private fun toMap(e: DiaryEntry): Map<String, Any?> = mapOf(
-        "uid" to e.uid,
-        "dateEpochDay" to e.dateEpochDay,
-        "timeMinutes" to e.timeMinutes,
-        "endDateEpochDay" to e.endDateEpochDay,
-        "endTimeMinutes" to e.endTimeMinutes,
-        "title" to e.title,
-        "content" to e.content,
-        "mood" to e.mood,
-        "importance" to e.importance,
-        "tags" to e.tags,
-        "reminderAtMillis" to e.reminderAtMillis,
-        "createdAt" to e.createdAt,
-        "updatedAt" to e.updatedAt,
-        "deletedAt" to e.deletedAt,
-        "authorNick" to e.authorNick
-    )
+    /** includePhotos: Storage 가 켜져 있을 때만 사진 파일명 목록도 같이 올린다. */
+    private fun toMap(e: DiaryEntry, includePhotos: Boolean): Map<String, Any?> {
+        val m = mutableMapOf<String, Any?>(
+            "uid" to e.uid,
+            "dateEpochDay" to e.dateEpochDay,
+            "timeMinutes" to e.timeMinutes,
+            "endDateEpochDay" to e.endDateEpochDay,
+            "endTimeMinutes" to e.endTimeMinutes,
+            "title" to e.title,
+            "content" to e.content,
+            "mood" to e.mood,
+            "importance" to e.importance,
+            "tags" to e.tags,
+            "reminderAtMillis" to e.reminderAtMillis,
+            "createdAt" to e.createdAt,
+            "updatedAt" to e.updatedAt,
+            "deletedAt" to e.deletedAt,
+            "authorNick" to e.authorNick
+        )
+        if (includePhotos) m["photos"] = e.photos
+        return m
+    }
 
     @Suppress("UNCHECKED_CAST")
     private fun fromSnapshot(s: DataSnapshot): DiaryEntry? {
@@ -395,6 +462,8 @@ object SyncManager {
         fun i(k: String, d: Int = 0) = (s.child(k).getValue(Long::class.java) ?: d.toLong()).toInt()
         fun st(k: String) = s.child(k).getValue(String::class.java) ?: ""
         val tags = (s.child("tags").value as? List<*>)?.mapNotNull { it as? String } ?: emptyList()
+        // Storage 가 꺼져 있는 상대가 올린 글에는 photos 칸이 아예 없다 → 빈 목록
+        val photos = (s.child("photos").value as? List<*>)?.mapNotNull { it as? String } ?: emptyList()
         return DiaryEntry(
             id = 0L,
             dateEpochDay = l("dateEpochDay"),
@@ -404,7 +473,7 @@ object SyncManager {
             mood = st("mood"),
             importance = i("importance", 50).coerceIn(1, 100),
             tags = tags,
-            photos = emptyList(),          // 사진은 폰 안에만 있으므로 공유하지 않는다
+            photos = photos,
             reminderAtMillis = l("reminderAtMillis"),
             createdAt = l("createdAt"),
             updatedAt = l("updatedAt"),
@@ -421,10 +490,16 @@ object SyncManager {
         val code = Prefs.groupCode(ctx)
         if (code.isEmpty() || entry.uid.isEmpty()) return
         val app = ensureApp(ctx) ?: return
+        val storageOn = FirebaseConfig.isStorageFilled()
         runCatching {
             FirebaseDatabase.getInstance(app).reference
                 .child("groups").child(code).child("entries").child(entry.uid)
-                .setValue(toMap(entry))
+                .setValue(toMap(entry, storageOn))
+        }
+        if (storageOn && entry.photos.isNotEmpty()) {
+            io.execute {
+                for (p in entry.photos) uploadPhoto(ctx, code, p)
+            }
         }
     }
 
@@ -433,6 +508,7 @@ object SyncManager {
         val code = Prefs.groupCode(ctx)
         if (code.isEmpty()) return
         val app = ensureApp(ctx) ?: return
+        val storageOn = FirebaseConfig.isStorageFilled()
         io.execute {
             runCatching {
                 val dao = AppDatabase.get(ctx).diaryDao()
@@ -445,7 +521,10 @@ object SyncManager {
                         val fixed = e.copy(uid = u)
                         dao.updateSync(fixed); fixed
                     } else e
-                    ref.child(withUid.uid).setValue(toMap(withUid))
+                    ref.child(withUid.uid).setValue(toMap(withUid, storageOn))
+                    if (storageOn) {
+                        for (p in withUid.photos) uploadPhoto(ctx, code, p)
+                    }
                 }
             }.onFailure { Log.w(TAG, "전체 업로드 실패", it) }
         }
@@ -481,18 +560,28 @@ object SyncManager {
 
     private fun applyRemote(ctx: Context, snapshot: DataSnapshot) {
         val remote = fromSnapshot(snapshot) ?: return
+        val code = Prefs.groupCode(ctx)
         io.execute {
             runCatching {
                 val dao = AppDatabase.get(ctx).diaryDao()
                 val local = dao.getByUidSync(remote.uid)
+                // Storage 가 켜져 있으면 상대가 올린 사진을 받아와 같이 반영하고,
+                // 꺼져 있으면 예전처럼 내 폰에 있는 사진 목록을 그대로 유지한다.
+                val storageOn = FirebaseConfig.isStorageFilled() && code.isNotEmpty()
+                if (storageOn) downloadMissingPhotos(ctx, code, remote.photos)
                 val saved: DiaryEntry = when {
                     local == null -> {
-                        val id = dao.insertSync(remote)
-                        remote.copy(id = id)
+                        val toInsert = if (storageOn) remote else remote.copy(photos = emptyList())
+                        val id = dao.insertSync(toInsert)
+                        toInsert.copy(id = id)
                     }
                     remote.updatedAt > local.updatedAt -> {
-                        // 사진은 내 폰에 있는 것을 그대로 유지한다
-                        val merged = remote.copy(id = local.id, photos = local.photos)
+                        val merged = if (storageOn) {
+                            remote.copy(id = local.id)
+                        } else {
+                            // 사진은 내 폰에 있는 것을 그대로 유지한다
+                            remote.copy(id = local.id, photos = local.photos)
+                        }
                         dao.updateSync(merged)
                         merged
                     }

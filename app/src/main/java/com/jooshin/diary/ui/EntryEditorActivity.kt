@@ -203,7 +203,10 @@ class EntryEditorActivity : AppCompatActivity() {
     private fun removePhoto(pos: Int) {
         if (pos !in photos.indices) return
         val name = photos.removeAt(pos)
-        if (name !in originalPhotos) ImageStore.delete(this, name)
+        if (name !in originalPhotos) {
+            ImageStore.delete(this, name)
+            SyncManager.deletePhoto(this, name)
+        }
         photoAdapter.notifyDataSetChanged()
         updatePhotoVisibility()
     }
@@ -444,7 +447,10 @@ class EntryEditorActivity : AppCompatActivity() {
             }
             // 원본에 있었지만 지금은 없는 사진 파일 삭제
             for (name in originalPhotos) {
-                if (name !in photos) ImageStore.delete(this@EntryEditorActivity, name)
+                if (name !in photos) {
+                    ImageStore.delete(this@EntryEditorActivity, name)
+                    SyncManager.deletePhoto(this@EntryEditorActivity, name)
+                }
             }
             ReminderScheduler.scheduleEntry(this@EntryEditorActivity, savedEntry)
             SyncManager.push(this@EntryEditorActivity, savedEntry)   // 공유 중이면 상대에게도 전달
@@ -476,7 +482,10 @@ class EntryEditorActivity : AppCompatActivity() {
             )
             dao.update(removed)
             SyncManager.push(this@EntryEditorActivity, removed)
-            e.photos.forEach { ImageStore.delete(this@EntryEditorActivity, it) }
+            e.photos.forEach {
+                ImageStore.delete(this@EntryEditorActivity, it)
+                SyncManager.deletePhoto(this@EntryEditorActivity, it)
+            }
             ReminderScheduler.cancelEntry(this@EntryEditorActivity, entryId)
             WidgetUpdater.refreshAll(this@EntryEditorActivity)
             saved = true
@@ -490,7 +499,10 @@ class EntryEditorActivity : AppCompatActivity() {
         // (화면 회전 등으로 잠시 없어지는 경우에는 지우면 안 된다)
         if (!saved && isFinishing) {
             for (name in photos) {
-                if (name !in originalPhotos) ImageStore.delete(this, name)
+                if (name !in originalPhotos) {
+                    ImageStore.delete(this, name)
+                    SyncManager.deletePhoto(this, name)
+                }
             }
         }
         super.onDestroy()
