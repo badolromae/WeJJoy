@@ -90,6 +90,14 @@
                             android:layout_height="wrap_content" android:text="연핑크" />
                         <RadioButton android:id="@+id/rbThemeMono" android:layout_width="match_parent"
                             android:layout_height="wrap_content" android:text="블랙 + 그레이" />
+                        <RadioButton android:id="@+id/rbThemeRed" android:layout_width="match_parent"
+                            android:layout_height="wrap_content" android:text="레드 + 주황" />
+                        <RadioButton android:id="@+id/rbThemeNavy" android:layout_width="match_parent"
+                            android:layout_height="wrap_content" android:text="군청" />
+                        <RadioButton android:id="@+id/rbThemeLightGreen" android:layout_width="match_parent"
+                            android:layout_height="wrap_content" android:text="연그린" />
+                        <RadioButton android:id="@+id/rbThemeYellow" android:layout_width="match_parent"
+                            android:layout_height="wrap_content" android:text="노랑" />
                     </RadioGroup>
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
@@ -207,7 +215,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
                 android:gravity="center"
-                android:text="버전 1.0"
+                android:text="버전 1.2"
                 android:textColor="?attr/appTextMuted"
                 android:textSize="12sp" />
         </LinearLayout>
