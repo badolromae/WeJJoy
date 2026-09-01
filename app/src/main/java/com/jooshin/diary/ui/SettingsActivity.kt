@@ -12,6 +12,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.biometric.BiometricManager
+import com.jooshin.diary.BuildConfig
 import com.jooshin.diary.R
 import com.jooshin.diary.databinding.ActivitySettingsBinding
 import com.jooshin.diary.notify.ReminderScheduler
@@ -80,6 +81,10 @@ class SettingsActivity : AppCompatActivity() {
             AppTheme.BLUE -> binding.rbThemeBlue.isChecked = true
             AppTheme.PINK -> binding.rbThemePink.isChecked = true
             AppTheme.MONO -> binding.rbThemeMono.isChecked = true
+            AppTheme.RED -> binding.rbThemeRed.isChecked = true
+            AppTheme.NAVY -> binding.rbThemeNavy.isChecked = true
+            AppTheme.LIGHT_GREEN -> binding.rbThemeLightGreen.isChecked = true
+            AppTheme.YELLOW -> binding.rbThemeYellow.isChecked = true
             else -> binding.rbThemeGreen.isChecked = true
         }
         binding.radioTheme.setOnCheckedChangeListener { _, id ->
@@ -87,6 +92,10 @@ class SettingsActivity : AppCompatActivity() {
                 R.id.rbThemeBlue -> AppTheme.BLUE
                 R.id.rbThemePink -> AppTheme.PINK
                 R.id.rbThemeMono -> AppTheme.MONO
+                R.id.rbThemeRed -> AppTheme.RED
+                R.id.rbThemeNavy -> AppTheme.NAVY
+                R.id.rbThemeLightGreen -> AppTheme.LIGHT_GREEN
+                R.id.rbThemeYellow -> AppTheme.YELLOW
                 else -> AppTheme.GREEN
             }
             if (t != Prefs.appTheme(this)) {
@@ -125,7 +134,7 @@ class SettingsActivity : AppCompatActivity() {
         }
         updateSecurityControls()
 
-        binding.tvVersion.text = "버전 1.0 · 모든 기록은 이 기기에만 저장됩니다."
+        binding.tvVersion.text = "버전 ${BuildConfig.VERSION_NAME} · 모든 기록은 이 기기에만 저장됩니다."
     }
 
     override fun onResume() {

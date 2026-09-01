@@ -5,7 +5,12 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
+import android.view.Gravity
+import android.view.ViewGroup
+import android.widget.LinearLayout
+import android.widget.NumberPicker
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
@@ -51,6 +56,10 @@ class MainActivity : AppCompatActivity() {
         binding.recyclerEntries.adapter = adapter
 
         binding.calendarView.onDaySelected = { handleSelect(it) }
+        binding.calendarView.onSwipeMonth = { dir ->
+            currentMonthFirst = DateUtil.addMonths(currentMonthFirst, dir)
+            loadMonth()
+        }
 
         binding.btnPrevMonth.setOnClickListener {
             currentMonthFirst = DateUtil.addMonths(currentMonthFirst, -1)
@@ -60,6 +69,7 @@ class MainActivity : AppCompatActivity() {
             currentMonthFirst = DateUtil.addMonths(currentMonthFirst, +1)
             loadMonth()
         }
+        binding.tvMonthTitle.setOnClickListener { showMonthPicker() }
         binding.btnToday.setOnClickListener {
             currentMonthFirst = DateUtil.firstOfMonthOf(DateUtil.today())
             selectedDay = DateUtil.today()
@@ -123,6 +133,41 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    /** 좌상단 "2026년 8월" 을 눌렀을 때: 년/월을 바로 골라 이동하는 다이얼로그. */
+    private fun showMonthPicker() {
+        val cur = DateUtil.toDate(currentMonthFirst)
+        val yearPicker = NumberPicker(this).apply {
+            minValue = 1900
+            maxValue = 2049
+            value = cur.year.coerceIn(minValue, maxValue)
+            wrapSelectorWheel = false
+        }
+        val monthPicker = NumberPicker(this).apply {
+            minValue = 1
+            maxValue = 12
+            value = cur.monthValue
+            wrapSelectorWheel = true
+        }
+        val row = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = Gravity.CENTER
+            setPadding(dp(8), dp(8), dp(8), 0)
+            addView(yearPicker, LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f))
+            addView(monthPicker, LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f))
+        }
+        AlertDialog.Builder(this)
+            .setTitle("년/월로 이동")
+            .setView(row)
+            .setNegativeButton("취소", null)
+            .setPositiveButton("이동") { _, _ ->
+                currentMonthFirst = DateUtil.firstOfMonth(yearPicker.value, monthPicker.value)
+                loadMonth()
+            }
+            .show()
+    }
+
+    private fun dp(v: Int) = (v * resources.displayMetrics.density).toInt()
+
     private fun loadEntries() {
         binding.tvSelectedDate.text = DateUtil.formatFullDate(selectedDay)
         val info = KoreanHolidays.info(selectedDay)
@@ -134,11 +179,16 @@ class MainActivity : AppCompatActivity() {
                 else -> palette.textPrimary
             }
         )
-        val sub = listOf(LunarCalendar.longLabel(selectedDay), info.full)
-            .filter { it.isNotEmpty() }.joinToString("  ·  ")
-        binding.tvSelectedInfo.text = sub
+        // 음력은 양력 날짜 옆에 나란히
+        val lunar = LunarCalendar.longLabel(selectedDay)
+        binding.tvSelectedLunar.text = lunar
+        binding.tvSelectedLunar.visibility =
+            if (lunar.isEmpty()) android.view.View.GONE else android.view.View.VISIBLE
+
+        // 공휴일/기념일 이름은 그 아래 줄에
+        binding.tvSelectedInfo.text = info.full
         binding.tvSelectedInfo.visibility =
-            if (sub.isEmpty()) android.view.View.GONE else android.view.View.VISIBLE
+            if (info.full.isEmpty()) android.view.View.GONE else android.view.View.VISIBLE
         binding.tvSelectedInfo.setTextColor(
             if (info.isHoliday) palette.sun else palette.textMuted
         )

@@ -2,8 +2,11 @@ package com.jooshin.diary.ui
 
 import android.content.Context
 import android.util.AttributeSet
+import android.view.GestureDetector
 import android.view.Gravity
+import android.view.MotionEvent
 import android.view.View
+import android.view.ViewConfiguration
 import android.widget.FrameLayout
 import android.widget.LinearLayout
 import android.widget.TextView
@@ -13,6 +16,7 @@ import com.jooshin.diary.util.DateUtil
 import com.jooshin.diary.util.KoreanHolidays
 import com.jooshin.diary.util.LunarCalendar
 import com.jooshin.diary.util.Palette
+import kotlin.math.abs
 
 /**
  * 앱 메인 화면의 월 달력(6주 x 7일).
@@ -25,6 +29,28 @@ class MonthCalendarView @JvmOverloads constructor(
 ) : LinearLayout(context, attrs) {
 
     var onDaySelected: ((Long) -> Unit)? = null
+
+    /** 좌우로 스와이프했을 때 호출. -1 = 이전 달, +1 = 다음 달. */
+    var onSwipeMonth: ((Int) -> Unit)? = null
+
+    private val touchSlop = ViewConfiguration.get(context).scaledTouchSlop
+    private var downX = 0f
+    private var downY = 0f
+    private var swiping = false
+
+    private val gestureDetector = GestureDetector(context, object : GestureDetector.SimpleOnGestureListener() {
+        override fun onFling(e1: MotionEvent?, e2: MotionEvent, velocityX: Float, velocityY: Float): Boolean {
+            val startX = e1?.x ?: return false
+            val startY = e1.y
+            val dx = e2.x - startX
+            val dy = e2.y - startY
+            if (abs(dx) > abs(dy) && abs(dx) > dp(50) && abs(velocityX) > 250) {
+                onSwipeMonth?.invoke(if (dx < 0) 1 else -1)
+                return true
+            }
+            return false
+        }
+    })
 
     private val dayViews = ArrayList<TextView>(42)
     private val lunarViews = ArrayList<TextView>(42)
@@ -45,6 +71,32 @@ class MonthCalendarView @JvmOverloads constructor(
     }
 
     private fun dp(v: Int) = (v * resources.displayMetrics.density).toInt()
+
+    // 좌우 스와이프로 월 이동: 가로로 크게 움직이면 이 뷰가 터치를 가로채 스와이프로 처리하고,
+    // 그렇지 않으면(가벼운 탭이면) 평소처럼 날짜 칸의 클릭이 그대로 동작한다.
+    override fun onInterceptTouchEvent(ev: MotionEvent): Boolean {
+        gestureDetector.onTouchEvent(ev)
+        when (ev.actionMasked) {
+            MotionEvent.ACTION_DOWN -> {
+                downX = ev.x; downY = ev.y; swiping = false
+            }
+            MotionEvent.ACTION_MOVE -> {
+                val dx = ev.x - downX
+                val dy = ev.y - downY
+                if (!swiping && abs(dx) > touchSlop && abs(dx) > abs(dy)) swiping = true
+            }
+            MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> swiping = false
+        }
+        return swiping
+    }
+
+    override fun onTouchEvent(event: MotionEvent): Boolean {
+        gestureDetector.onTouchEvent(event)
+        if (event.actionMasked == MotionEvent.ACTION_UP || event.actionMasked == MotionEvent.ACTION_CANCEL) {
+            swiping = false
+        }
+        return true
+    }
 
     private fun buildWeekdayHeader(): View {
         val row = LinearLayout(context).apply {
@@ -79,9 +131,11 @@ class MonthCalendarView @JvmOverloads constructor(
         }
         for (c in 0..6) {
             val cell = FrameLayout(context).apply {
-                layoutParams = LayoutParams(0, LayoutParams.MATCH_PARENT, 1f)
+                layoutParams = LayoutParams(0, LayoutParams.MATCH_PARENT, 1f).also {
+                    it.setMargins(dp(1), dp(1), dp(1), dp(1))
+                }
                 isClickable = true
-                // 날짜별 구분선 (흰색 테두리)
+                // 날짜별 구분선 (둥근 모서리 테두리)
                 setBackgroundResource(R.drawable.cal_cell_border)
                 val rippleRes = selectableItemBackgroundRes()
                 if (rippleRes != 0) {
@@ -214,7 +268,8 @@ class MonthCalendarView @JvmOverloads constructor(
                 }
             )
 
-            lunarViews[i].text = LunarCalendar.shortLabel(ed)
+            // 매달 1일에만 음력을 항상 보여주고, 나머지 날짜는 눌렀을 때(아래 날짜 정보) 확인한다.
+            lunarViews[i].text = if (d.dayOfMonth == 1) LunarCalendar.shortLabel(ed) else ""
             lunarViews[i].setTextColor(if (inMonth) cLunar else cOutside)
 
             val note = info.compact

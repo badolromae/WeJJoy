@@ -43,7 +43,9 @@ abstract class AppDatabase : RoomDatabase() {
                     "diary.db"
                 )
                     .addMigrations(MIGRATION_1_2, MIGRATION_2_3)
-                    .fallbackToDestructiveMigration()
+                    // 주의: fallbackToDestructiveMigration()을 쓰지 않는다.
+                    // 그 옵션은 버전이 바뀌었는데 맞는 Migration이 없으면 조용히 DB를 통째로 지우고 새로 만든다.
+                    // 앞으로 DB 구조를 바꿀 때는 반드시 위처럼 MIGRATION_x_y를 추가해서 기록이 보존되게 해야 한다.
                     .build().also { INSTANCE = it }
             }
     }
