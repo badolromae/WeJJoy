@@ -9,3 +9,6 @@ build/
 .cxx
 /app/build/
 !gradle/wrapper/gradle-wrapper.jar
+
+# CI가 debug-keystore.b64 를 풀어서 만드는 실제 서명키 파일. (b64 로 인코딩된 원본만 커밋해 둔다)
+/debug.keystore
