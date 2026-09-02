@@ -40,7 +40,7 @@ object FirebaseConfig {
      *
      * 비워두면 사진 공유 기능만 꺼진 채, 글·일정 공유는 지금처럼 정상 동작합니다.
      */
-    const val STORAGE_BUCKET = ""
+    const val STORAGE_BUCKET = "wejjoy-7f100.firebasestorage.app"
 
     /** 4칸이 모두 채워졌는가 (글·일정 공유의 최소 조건) */
     fun isFilled(): Boolean =
