@@ -130,8 +130,8 @@
 
     <!-- 레드+주황 -->
     <color name="pr_toolbar">#FF0D0806</color>
-    <color name="pr_accent">#FFC96236</color>
-    <color name="pr_accent_soft">#33C96236</color>
+    <color name="pr_accent">#FFE75940</color>
+    <color name="pr_accent_soft">#33E75940</color>
     <color name="pr_bg">#FF0C0807</color>
     <color name="pr_surface">#FF171210</color>
     <color name="pr_section">#FF201A17</color>
@@ -145,7 +145,7 @@
     <color name="pr_cal_outside">#FF534844</color>
     <color name="pr_cal_lunar">#FF8F837E</color>
     <color name="pr_cal_grid">#FF7F736E</color>
-    <color name="pr_today_ring">#FFC96236</color>
+    <color name="pr_today_ring">#FFE75940</color>
     <color name="pr_mood_bg">#FF372117</color>
 
     <!-- 군청 -->
@@ -168,25 +168,31 @@
     <color name="pn_today_ring">#FF3653C9</color>
     <color name="pn_mood_bg">#FF171D37</color>
 
-    <!-- 연그린 -->
-    <color name="pl_toolbar">#FF08140A</color>
+    <!--
+      연그린 (다크모드): 딥그린(pg)과 나란히 놓으면 거의 구분이 안 된다는 피드백이 있었다.
+      원인은 배경/표면 계열 색이 딥그린과 마찬가지로 명도가 거의 0에 가까운 "거의 검정"이라,
+      색상(hue)만 달라서는 눈에 잘 안 보였기 때문. 그래서 연그린은 배경/표면 계열의 명도와
+      채도를 확실히 올려서, 어두운 화면에서도 초록빛이 실제로 느껴지게 했다.
+      (강조색 pl_accent 는 이미 충분히 밝고 다르므로 그대로 둠)
+    -->
+    <color name="pl_toolbar">#FF0F2410</color>
     <color name="pl_accent">#FF7BEA91</color>
     <color name="pl_accent_soft">#337BEA91</color>
-    <color name="pl_bg">#FF0A0E0B</color>
-    <color name="pl_surface">#FF121913</color>
-    <color name="pl_section">#FF172119</color>
-    <color name="pl_stroke">#FF212C23</color>
+    <color name="pl_bg">#FF111C12</color>
+    <color name="pl_surface">#FF1D2B1D</color>
+    <color name="pl_section">#FF213122</color>
+    <color name="pl_stroke">#FF2C3F2D</color>
     <color name="pl_text_primary">#FFE4F0E6</color>
     <color name="pl_text_secondary">#FFA9BCAD</color>
     <color name="pl_text_muted">#FF808F83</color>
-    <color name="pl_divider">#FF212C23</color>
+    <color name="pl_divider">#FF2C3F2D</color>
     <color name="pl_on_selected">#FF0A180D</color>
     <color name="pl_cal_normal">#FFDCEBDF</color>
     <color name="pl_cal_outside">#FF48594B</color>
     <color name="pl_cal_lunar">#FF819485</color>
     <color name="pl_cal_grid">#FF687A6C</color>
     <color name="pl_today_ring">#FF7BEA91</color>
-    <color name="pl_mood_bg">#FF204026</color>
+    <color name="pl_mood_bg">#FF265429</color>
 
     <!-- 노랑 -->
     <color name="py_toolbar">#FF0F0C05</color>

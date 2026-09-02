@@ -137,8 +137,8 @@
 
     <!-- 레드+주황 -->
     <color name="pr_toolbar">#FF20110B</color>
-    <color name="pr_accent">#FF913E1A</color>
-    <color name="pr_accent_soft">#1F913E1A</color>
+    <color name="pr_accent">#FFD33017</color>
+    <color name="pr_accent_soft">#1FD33017</color>
     <color name="pr_bg">#FFF5F3F2</color>
     <color name="pr_surface">#FFFFFFFF</color>
     <color name="pr_section">#FFF4F0EF</color>

@@ -2,7 +2,6 @@ package com.jooshin.diary.ui
 
 import android.content.Context
 import android.util.AttributeSet
-import android.view.GestureDetector
 import android.view.Gravity
 import android.view.MotionEvent
 import android.view.View
@@ -38,20 +37,6 @@ class MonthCalendarView @JvmOverloads constructor(
     private var downY = 0f
     private var swiping = false
 
-    private val gestureDetector = GestureDetector(context, object : GestureDetector.SimpleOnGestureListener() {
-        override fun onFling(e1: MotionEvent?, e2: MotionEvent, velocityX: Float, velocityY: Float): Boolean {
-            val startX = e1?.x ?: return false
-            val startY = e1.y
-            val dx = e2.x - startX
-            val dy = e2.y - startY
-            if (abs(dx) > abs(dy) && abs(dx) > dp(50) && abs(velocityX) > 250) {
-                onSwipeMonth?.invoke(if (dx < 0) 1 else -1)
-                return true
-            }
-            return false
-        }
-    })
-
     private val dayViews = ArrayList<TextView>(42)
     private val lunarViews = ArrayList<TextView>(42)
     private val noteViews = ArrayList<TextView>(42)
@@ -74,8 +59,9 @@ class MonthCalendarView @JvmOverloads constructor(
 
     // 좌우 스와이프로 월 이동: 가로로 크게 움직이면 이 뷰가 터치를 가로채 스와이프로 처리하고,
     // 그렇지 않으면(가벼운 탭이면) 평소처럼 날짜 칸의 클릭이 그대로 동작한다.
+    // (예전엔 GestureDetector 의 onFling 속도 판정에 맡겼는데, 손가락을 빠르게 튕기지 않으면
+    //  인식이 안 되는 경우가 있어서, 손을 뗄 때의 실제 이동 거리만으로 더 확실하게 판정한다.)
     override fun onInterceptTouchEvent(ev: MotionEvent): Boolean {
-        gestureDetector.onTouchEvent(ev)
         when (ev.actionMasked) {
             MotionEvent.ACTION_DOWN -> {
                 downX = ev.x; downY = ev.y; swiping = false
@@ -85,15 +71,30 @@ class MonthCalendarView @JvmOverloads constructor(
                 val dy = ev.y - downY
                 if (!swiping && abs(dx) > touchSlop && abs(dx) > abs(dy)) swiping = true
             }
-            MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> swiping = false
+            MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {} // 최종 판정은 onTouchEvent 에서
         }
         return swiping
     }
 
     override fun onTouchEvent(event: MotionEvent): Boolean {
-        gestureDetector.onTouchEvent(event)
-        if (event.actionMasked == MotionEvent.ACTION_UP || event.actionMasked == MotionEvent.ACTION_CANCEL) {
-            swiping = false
+        when (event.actionMasked) {
+            MotionEvent.ACTION_DOWN -> {
+                downX = event.x; downY = event.y
+            }
+            MotionEvent.ACTION_MOVE -> {
+                val dx = event.x - downX
+                val dy = event.y - downY
+                if (!swiping && abs(dx) > touchSlop && abs(dx) > abs(dy)) swiping = true
+            }
+            MotionEvent.ACTION_UP -> {
+                val dx = event.x - downX
+                val dy = event.y - downY
+                if (swiping && abs(dx) > dp(60) && abs(dx) > abs(dy)) {
+                    onSwipeMonth?.invoke(if (dx < 0) 1 else -1)
+                }
+                swiping = false
+            }
+            MotionEvent.ACTION_CANCEL -> swiping = false
         }
         return true
     }

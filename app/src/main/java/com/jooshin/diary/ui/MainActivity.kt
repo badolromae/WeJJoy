@@ -1,6 +1,7 @@
 package com.jooshin.diary.ui
 
 import android.Manifest
+import android.animation.ValueAnimator
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
@@ -15,6 +16,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.jooshin.diary.R
 import com.jooshin.diary.data.AppDatabase
 import com.jooshin.diary.data.countsByDay
@@ -39,6 +41,11 @@ class MainActivity : AppCompatActivity() {
 
     private var currentMonthFirst = DateUtil.firstOfMonthOf(DateUtil.today())
     private var selectedDay = DateUtil.today()
+
+    // 목록을 위아래로 드래그할 때 달력 영역(headerContainer)을 같이 접었다 펼치기 위한 상태
+    private var headerFullHeight = 0
+    private var headerCollapsed = false
+    private var headerAnimator: ValueAnimator? = null
 
     private val requestNotif =
         registerForActivityResult(ActivityResultContracts.RequestPermission()) { }
@@ -78,7 +85,62 @@ class MainActivity : AppCompatActivity() {
         }
         binding.fabAdd.setOnClickListener { openEditorNew(selectedDay) }
 
+        setupHeaderCollapse()
         maybeRequestNotifPermission()
+    }
+
+    /**
+     * 일기 목록(recyclerEntries)을 위로 드래그하면 달력 영역(headerContainer)이 같이 접히고,
+     * 목록을 아래로 당기거나 맨 위까지 올리면 다시 펼쳐진다.
+     *
+     * 전에는 CoordinatorLayout + AppBarLayout 의 스크롤 연동 기능에 맡겼었는데, 실제로는
+     * AppBarLayout 자체의 "직접 드래그하면 접히는" 내장 동작이 달력의 좌우 스와이프(월 이동)
+     * 제스처와 터치를 서로 먼저 가로채려고 경합하는 문제가 있었다. 그래서 여기서는
+     * CoordinatorLayout 을 쓰지 않고, 목록의 스크롤 방향을 직접 보고 애니메이션으로
+     * 접었다 펼치는 방식으로 바꿨다. (이러면 달력 스와이프와 전혀 부딪히지 않는다)
+     */
+    private fun setupHeaderCollapse() {
+        binding.headerContainer.post {
+            if (headerFullHeight <= 0) headerFullHeight = binding.headerContainer.height
+        }
+        binding.recyclerEntries.addOnScrollListener(object : RecyclerView.OnScrollListener() {
+            override fun onScrolled(rv: RecyclerView, dx: Int, dy: Int) {
+                if (headerFullHeight <= 0) return
+                if (!rv.canScrollVertically(-1)) {
+                    expandHeader()
+                    return
+                }
+                if (dy > 4 && !headerCollapsed) collapseHeader()
+                else if (dy < -4 && headerCollapsed) expandHeader()
+            }
+        })
+    }
+
+    private fun collapseHeader() {
+        headerCollapsed = true
+        animateHeaderTo(0)
+    }
+
+    private fun expandHeader() {
+        headerCollapsed = false
+        animateHeaderTo(headerFullHeight)
+    }
+
+    private fun animateHeaderTo(target: Int) {
+        if (headerFullHeight <= 0) return
+        val current = binding.headerContainer.height
+        if (current == target && headerAnimator?.isRunning != true) return
+        headerAnimator?.cancel()
+        headerAnimator = ValueAnimator.ofInt(current, target).apply {
+            duration = 180
+            addUpdateListener { a ->
+                val v = a.animatedValue as Int
+                val lp = binding.headerContainer.layoutParams
+                lp.height = v
+                binding.headerContainer.layoutParams = lp
+            }
+            start()
+        }
     }
 
     override fun onNewIntent(intent: Intent) {
