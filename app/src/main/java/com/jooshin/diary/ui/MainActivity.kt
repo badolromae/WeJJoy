@@ -114,6 +114,20 @@ class MainActivity : AppCompatActivity() {
                 else if (dy < -4 && headerCollapsed) expandHeader()
             }
         })
+        // 목록이 맨 위까지 스크롤된 다음에도 계속 아래로 당기면(더 스크롤할 곳이 없는 상태),
+        // onScrolled 만으로는 그 "당기는 동작" 자체를 알 수가 없다(목록이 실제로 움직이지
+        // 않으니까). 그래서 이 "남은 드래그량"은 MainRootLayout 이 중첩 스크롤로 따로 알려주고,
+        // 그 값만큼 손가락을 따라 달력을 실시간으로 펼친다.
+        binding.mainRoot.onOverscrollDown = { extraPx ->
+            if (headerFullHeight > 0) {
+                headerAnimator?.cancel()
+                val newHeight = (binding.headerContainer.height + extraPx).coerceIn(0, headerFullHeight)
+                val lp = binding.headerContainer.layoutParams
+                lp.height = newHeight
+                binding.headerContainer.layoutParams = lp
+                if (newHeight >= headerFullHeight) headerCollapsed = false
+            }
+        }
     }
 
     private fun collapseHeader() {
