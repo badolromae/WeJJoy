@@ -59,7 +59,7 @@ class MainActivity : AppCompatActivity() {
         setContentView(binding.root)
         setSupportActionBar(binding.toolbar)
 
-        adapter = EntryAdapter { openEditor(it.id) }
+        adapter = EntryAdapter { openDetail(it.id) }
         binding.recyclerEntries.layoutManager = LinearLayoutManager(this)
         binding.recyclerEntries.adapter = adapter
 
@@ -292,7 +292,7 @@ class MainActivity : AppCompatActivity() {
         i.removeExtra(EXTRA_TIME)
 
         if (entryId > 0L) {
-            openEditor(entryId)
+            openDetail(entryId)
             return
         }
         if (date != Long.MIN_VALUE) {
@@ -311,6 +311,13 @@ class MainActivity : AppCompatActivity() {
 
     private fun openEditor(id: Long) {
         startActivity(Intent(this, EntryEditorActivity::class.java).apply {
+            putExtra(EXTRA_ENTRY_ID, id)
+        })
+    }
+
+    /** 목록/알림에서 일기를 누르면 '보기'(읽기) 화면을 먼저 연다. (거기서 연필로 수정) */
+    private fun openDetail(id: Long) {
+        startActivity(Intent(this, EntryDetailActivity::class.java).apply {
             putExtra(EXTRA_ENTRY_ID, id)
         })
     }

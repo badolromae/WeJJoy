@@ -33,7 +33,7 @@ class SearchActivity : AppCompatActivity() {
 
         adapter = EntryAdapter(showDate = true) { e ->
             startActivity(
-                android.content.Intent(this, EntryEditorActivity::class.java)
+                android.content.Intent(this, EntryDetailActivity::class.java)
                     .putExtra(MainActivity.EXTRA_ENTRY_ID, e.id)
             )
         }

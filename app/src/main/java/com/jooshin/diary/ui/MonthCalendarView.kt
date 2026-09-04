@@ -132,7 +132,7 @@ class MonthCalendarView @JvmOverloads constructor(
     private fun buildWeekRow(): View {
         val row = LinearLayout(context).apply {
             orientation = HORIZONTAL
-            layoutParams = LayoutParams(LayoutParams.MATCH_PARENT, dp(68))
+            layoutParams = LayoutParams(LayoutParams.MATCH_PARENT, dp(76))
         }
         for (c in 0..6) {
             val cell = FrameLayout(context).apply {
@@ -150,7 +150,7 @@ class MonthCalendarView @JvmOverloads constructor(
             val box = LinearLayout(context).apply {
                 orientation = VERTICAL
                 gravity = Gravity.TOP or Gravity.CENTER_HORIZONTAL
-                setPadding(dp(1), dp(2), dp(1), 0)
+                setPadding(dp(1), dp(1), dp(1), 0)
                 layoutParams = FrameLayout.LayoutParams(
                     FrameLayout.LayoutParams.MATCH_PARENT,
                     FrameLayout.LayoutParams.MATCH_PARENT
@@ -158,14 +158,14 @@ class MonthCalendarView @JvmOverloads constructor(
             }
             val day = TextView(context).apply {
                 gravity = Gravity.CENTER
-                textSize = 16f
-                layoutParams = LinearLayout.LayoutParams(dp(30), dp(30))
+                textSize = 15f
+                layoutParams = LinearLayout.LayoutParams(dp(28), dp(28))
             }
             val dot = View(context).apply {
                 layoutParams = LinearLayout.LayoutParams(dp(16), dp(3)).also { it.topMargin = dp(1) }
             }
             val emo = ImageView(context).apply {
-                layoutParams = LinearLayout.LayoutParams(dp(22), dp(22)).also { it.topMargin = dp(1) }
+                layoutParams = LinearLayout.LayoutParams(dp(18), dp(18)).also { it.topMargin = dp(1) }
                 adjustViewBounds = true
                 visibility = View.GONE
             }
