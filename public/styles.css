@@ -127,6 +127,28 @@ body {
 .segmini { margin-bottom: 8px; }
 .segmini button { padding: 8px; font-size: 13px; }
 .inline-emo { height: 1.4em; width: auto; vertical-align: -0.35em; }
+.inline-emo-big { height: 2.6em; width: auto; vertical-align: -0.9em; margin: 0 1px; }
+
+/* 일기 보기(전체화면) */
+.detail-modal { align-items: stretch; }
+.detail-sheet { width: 100%; max-width: 720px; height: 100%; max-height: 100%; border-radius: 0; margin: 0 auto; }
+@media (min-width: 760px){ .detail-modal { align-items: center; } .detail-sheet { height: 92vh; border-radius: 16px; } }
+.icon-edit { background: transparent; border: 0; font-size: 22px; cursor: pointer; padding: 4px 6px; border-radius: 8px; }
+.icon-edit:hover { background: var(--accent-soft); }
+.dt-meta { font-size: 13px; color: var(--muted); margin-bottom: 12px; }
+.dt-titleline { display: flex; align-items: center; gap: 8px; margin-bottom: 14px; }
+.dt-mood { font-size: 26px; line-height: 1; } .dt-mood img { width: 40px; height: 40px; vertical-align: middle; }
+.dt-title { font-size: 22px; font-weight: 800; color: var(--text); }
+.dt-title .inline-emo { height: 1.5em; vertical-align: -0.4em; }
+.dt-content { font-size: 17px; line-height: 2.1; color: var(--text); white-space: pre-wrap; word-break: break-word; min-height: 40px; }
+.dt-empty { color: var(--muted); }
+.dt-tags { margin-top: 14px; color: var(--accent); font-size: 14px; }
+.dt-imp { display: flex; align-items: center; gap: 10px; margin-top: 20px; }
+.dt-imp-label { font-size: 12px; color: var(--muted); font-weight: 700; }
+.dt-imp .imp { flex: 1; height: 8px; background: var(--section); border-radius: 4px; overflow: hidden; }
+.dt-imp .imp > i { display: block; height: 100%; background: var(--accent); }
+.dt-photos { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
+.dt-photos img { width: 100%; max-width: 320px; border-radius: 12px; }
 .cell-emo { width: 24px; height: 24px; margin-top: 1px; object-fit: contain; }
 .card .content .inline-emo, .card .title .inline-emo { height: 1.5em; }
 .sticker-row { margin-top: 8px; }

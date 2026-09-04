@@ -93,6 +93,25 @@
   </div>
 </div>
 
+<!-- ===== 일기 보기(전체화면) ===== -->
+<div id="detailModal" class="modal detail-modal" hidden>
+  <div class="sheet detail-sheet">
+    <div class="sheet-head">
+      <button id="dtClose" class="link-btn">닫기</button>
+      <div class="sheet-title">일기</div>
+      <button id="dtEdit" class="icon-edit" title="수정" aria-label="수정">✏️</button>
+    </div>
+    <div class="sheet-body">
+      <div id="dtMeta" class="dt-meta"></div>
+      <div class="dt-titleline"><span id="dtMood" class="dt-mood"></span><span id="dtTitle" class="dt-title"></span></div>
+      <div id="dtContent" class="dt-content"></div>
+      <div id="dtTags" class="dt-tags" hidden></div>
+      <div class="dt-imp"><span class="dt-imp-label">중요도</span><div class="imp"><i id="dtImpBar"></i></div><span id="dtImpPct" class="imppct"></span></div>
+      <div id="dtPhotos" class="dt-photos"></div>
+    </div>
+  </div>
+</div>
+
 <!-- ===== 설정 모달 ===== -->
 <div id="settingsModal" class="modal" hidden>
   <div class="sheet">

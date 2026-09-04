@@ -28,9 +28,9 @@ const STICKER_GROUPS = [
   ]],
 ];
 const STICKER_SET = new Set(STICKER_GROUPS.flatMap(([g,items])=>items.map(([n])=>n)));
-const WEB_VERSION = '1.2';
+const WEB_VERSION = '2.1';
 function firstInline(t){ const m=/\[\[s:([a-z0-9_]+)\]\]/.exec(t||''); return (m && STICKER_SET.has(m[1]))?m[1]:''; }
-function renderRich(t){ let h=escapeHtml(t||''); return h.replace(/\[\[s:([a-z0-9_]+)\]\]/g,(m,n)=>STICKER_SET.has(n)?`<img class="inline-emo" src="${stickerSrc(n)}" alt="">`:''); }
+function renderRich(t, big){ let h=escapeHtml(t||''); const cls=big?'inline-emo-big':'inline-emo'; return h.replace(/\[\[s:([a-z0-9_]+)\]\]/g,(m,n)=>STICKER_SET.has(n)?`<img class="${cls}" src="${stickerSrc(n)}" alt="">`:''); }
 const MOODS = ["😊","😄","😍","🥰","😌","😐","😢","😭","😠","😴","🤒","🎉","❤️","👍","🙏","💐","☕","🍚"];
 const THEMES = [
   ["green","딥그린"],["blue","스카이블루"],["pink","연핑크"],["mono","블랙+그레이"],
@@ -203,8 +203,35 @@ function entryCard(e, day){
   if (e._photoUrl){
     const img = document.createElement('img'); img.className='thumb'; img.src=e._photoUrl; el.appendChild(img);
   }
-  el.onclick = ()=> openEditor(e);
+  el.onclick = ()=> openDetail(e);
   return el;
+}
+
+// ================================================================ 보기(읽기) 전체화면
+function openDetail(e){
+  S.detail = e;
+  const end = (e.endDateEpochDay && e.endDateEpochDay>e.dateEpochDay)?e.endDateEpochDay:e.dateEpochDay;
+  const timeTxt = D.formatTimeRangeShort(e.dateEpochDay, e.timeMinutes ?? -1, end, e.endTimeMinutes ?? -1).replace(/\n/g,' ');
+  const dateTxt = D.formatFullDate(e.dateEpochDay) + (e.timeMinutes>=0 ? '  '+D.formatTime(e.timeMinutes) : '  종일');
+  $('dtMeta').textContent = dateTxt + (e.authorNick?('  ·  '+e.authorNick):'');
+  $('dtMood').innerHTML = e.sticker ? `<img src="${stickerSrc(e.sticker)}" alt="">`
+                        : (e.mood ? escapeHtml(e.mood) : '');
+  $('dtMood').hidden = !(e.sticker || e.mood);
+  $('dtTitle').innerHTML = renderRich(e.title, false) || '(제목 없음)';
+  const content = (e.content||'').trim();
+  $('dtContent').innerHTML = content ? renderRich(content, true) : '<span class="dt-empty">(내용 없음)</span>';
+  const tags = (e.tags && e.tags.length) ? e.tags.map(t=>'#'+escapeHtml(t)).join(' ') : '';
+  $('dtTags').innerHTML = tags; $('dtTags').hidden = !tags;
+  const imp = Math.max(1, Math.min(100, e.importance||50));
+  $('dtImpBar').style.width = imp+'%'; $('dtImpPct').textContent = imp+'%';
+  // 사진
+  const pr = $('dtPhotos'); pr.innerHTML='';
+  if (e._photoUrl){ const img=document.createElement('img'); img.src=e._photoUrl; pr.appendChild(img); }
+  else if (storage && S.group && e.photos && e.photos.length){
+    for (const nm of e.photos){ const img=document.createElement('img');
+      storage.ref(`groups/${S.group.code}/photos/${nm}`).getDownloadURL().then(u=>img.src=u).catch(()=>{}); pr.appendChild(img); }
+  }
+  show('detailModal');
 }
 
 function escapeHtml(s){ return String(s).replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
@@ -555,7 +582,7 @@ function openSearch(){
       (e.tags||[]).some(t=>t.toLowerCase().includes(q))
     ).sort((a,b)=>(b.dateEpochDay-a.dateEpochDay)).slice(0,50);
     for (const e of hits){ const c=entryCard(e, e.dateEpochDay);
-      c.onclick=()=>{ hide('searchModal'); selectDay(e.dateEpochDay); openEditor(e); }; box.appendChild(c); }
+      c.onclick=()=>{ hide('searchModal'); selectDay(e.dateEpochDay); openDetail(e); }; box.appendChild(c); }
     if(!hits.length) box.innerHTML='<div class="hint">검색 결과가 없습니다.</div>';
   };
 }
@@ -574,6 +601,8 @@ $('fabAdd').onclick=()=> openEditor(null);
 $('btnSettings').onclick=openSettings; $('setClose').onclick=()=>hide('settingsModal');
 $('btnShare').onclick=openShare; $('shClose').onclick=()=>hide('shareModal');
 $('btnSearch').onclick=openSearch; $('scClose').onclick=()=>hide('searchModal');
+$('dtClose').onclick=()=>hide('detailModal');
+$('dtEdit').onclick=()=>{ hide('detailModal'); if(S.detail) openEditor(S.detail); };
 $('edCancel').onclick=()=>hide('editorModal'); $('edSave').onclick=saveEntry; $('edDelete').onclick=deleteEntry;
 $('edImp').oninput=()=>$('impVal').textContent=$('edImp').value+'%';
 $('edUseEnd').onchange=()=>$('edEndRow').hidden=!$('edUseEnd').checked;
