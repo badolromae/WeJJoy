@@ -449,7 +449,8 @@ object SyncManager {
             "createdAt" to e.createdAt,
             "updatedAt" to e.updatedAt,
             "deletedAt" to e.deletedAt,
-            "authorNick" to e.authorNick
+            "authorNick" to e.authorNick,
+            "sticker" to e.sticker
         )
         if (includePhotos) m["photos"] = e.photos
         return m
@@ -481,7 +482,8 @@ object SyncManager {
             endTimeMinutes = i("endTimeMinutes", -1),
             uid = uid,
             deletedAt = l("deletedAt"),
-            authorNick = st("authorNick")
+            authorNick = st("authorNick"),
+            sticker = st("sticker")
         )
     }
 

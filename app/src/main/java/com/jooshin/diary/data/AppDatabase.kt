@@ -8,7 +8,7 @@ import androidx.room.TypeConverters
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 
-@Database(entities = [DiaryEntry::class], version = 3, exportSchema = false)
+@Database(entities = [DiaryEntry::class], version = 4, exportSchema = false)
 @TypeConverters(Converters::class)
 abstract class AppDatabase : RoomDatabase() {
 
@@ -35,6 +35,13 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
+        /** v3 -> v4 : 대표 이모티콘 필드 추가. 기존 기록은 그대로 유지됩니다. */
+        private val MIGRATION_3_4 = object : Migration(3, 4) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE entries ADD COLUMN sticker TEXT NOT NULL DEFAULT ''")
+            }
+        }
+
         fun get(context: Context): AppDatabase =
             INSTANCE ?: synchronized(this) {
                 INSTANCE ?: Room.databaseBuilder(
@@ -42,7 +49,7 @@ abstract class AppDatabase : RoomDatabase() {
                     AppDatabase::class.java,
                     "diary.db"
                 )
-                    .addMigrations(MIGRATION_1_2, MIGRATION_2_3)
+                    .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4)
                     // 주의: fallbackToDestructiveMigration()을 쓰지 않는다.
                     // 그 옵션은 버전이 바뀌었는데 맞는 Migration이 없으면 조용히 DB를 통째로 지우고 새로 만든다.
                     // 앞으로 DB 구조를 바꿀 때는 반드시 위처럼 MIGRATION_x_y를 추가해서 기록이 보존되게 해야 한다.

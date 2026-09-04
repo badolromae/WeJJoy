@@ -34,7 +34,10 @@ data class DiaryEntry(
     /** 0 이면 살아있는 기록. 0 이 아니면 삭제된 기록(상대 폰에도 삭제를 알리기 위해 남겨둔다) */
     val deletedAt: Long = 0L,
     /** 누가 쓴 기록인지 (별명) */
-    val authorNick: String = ""
+    val authorNick: String = "",
+
+    /** 대표 이모티콘 파일 이름 (예: "couple_01_love_hug"). 목록/달력에 그림으로 표시. 웹과 공유. */
+    val sticker: String = ""
 )
 
 /** 새 일기에 붙일 전역 id */
@@ -67,6 +70,25 @@ fun List<DiaryEntry>.countsByDay(start: Long, end: Long): Map<Long, Int> {
         val last = minOf(e.endDay, end)
         while (d <= last) {
             out[d] = (out[d] ?: 0) + 1
+            d++
+        }
+    }
+    return out
+}
+
+/** [start]~[end] 구간에서 날짜별 대표 이모티콘 (달력 칸 표시용).
+ *  entry.sticker 우선, 없으면 제목/내용 속 첫 인라인 이모티콘 사용. */
+fun List<DiaryEntry>.stickersByDay(start: Long, end: Long): Map<Long, String> {
+    val out = HashMap<Long, String>()
+    for (e in this) {
+        val st = if (e.sticker.isNotEmpty()) e.sticker
+        else com.jooshin.diary.util.Stickers.firstInline(e.title)
+            .ifEmpty { com.jooshin.diary.util.Stickers.firstInline(e.content) }
+        if (st.isEmpty()) continue
+        var d = maxOf(e.dateEpochDay, start)
+        val last = minOf(e.endDay, end)
+        while (d <= last) {
+            if (!out.containsKey(d)) out[d] = st
             d++
         }
     }

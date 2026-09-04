@@ -62,6 +62,14 @@
                     android:text=""
                     android:textSize="15sp" />
 
+                <ImageView
+                    android:id="@+id/entry_sticker"
+                    android:layout_width="28dp"
+                    android:layout_height="28dp"
+                    android:layout_marginEnd="5dp"
+                    android:contentDescription="이모티콘"
+                    android:visibility="gone" />
+
                 <TextView
                     android:id="@+id/entry_title"
                     android:layout_width="0dp"

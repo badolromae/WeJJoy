@@ -20,6 +20,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.jooshin.diary.R
 import com.jooshin.diary.data.AppDatabase
 import com.jooshin.diary.data.countsByDay
+import com.jooshin.diary.data.stickersByDay
 import com.jooshin.diary.databinding.ActivityMainBinding
 import com.jooshin.diary.util.AppLock
 import com.jooshin.diary.util.DateUtil
@@ -203,8 +204,10 @@ class MainActivity : AppCompatActivity() {
         val gridStart = DateUtil.monthGridStart(currentMonthFirst)
         val gridEnd = gridStart + 41
         lifecycleScope.launch {
-            val counts = dao.getOverlapping(gridStart, gridEnd).countsByDay(gridStart, gridEnd)
-            binding.calendarView.bind(currentMonthFirst, selectedDay, counts)
+            val list = dao.getOverlapping(gridStart, gridEnd)
+            val counts = list.countsByDay(gridStart, gridEnd)
+            val stickers = list.stickersByDay(gridStart, gridEnd)
+            binding.calendarView.bind(currentMonthFirst, selectedDay, counts, stickers)
             binding.tvMonthTitle.text = DateUtil.formatMonthTitle(currentMonthFirst)
         }
     }

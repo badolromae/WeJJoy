@@ -178,6 +178,56 @@
                     android:paddingBottom="2dp" />
             </HorizontalScrollView>
 
+            <TextView style="@style/SectionLabel" android:text="이모티콘 (60종)" />
+
+            <com.google.android.material.button.MaterialButtonToggleGroup
+                android:id="@+id/toggleStickerMode"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:selectionRequired="true"
+                app:singleSelection="true">
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnModeRep"
+                    style="@style/Widget.Material3.Button.OutlinedButton"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="대표(달력)" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnModeTitle"
+                    style="@style/Widget.Material3.Button.OutlinedButton"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="제목에" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnModeContent"
+                    style="@style/Widget.Material3.Button.OutlinedButton"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="내용에" />
+            </com.google.android.material.button.MaterialButtonToggleGroup>
+
+            <TextView
+                android:id="@+id/tvStickerHint"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:text="‘대표’는 달력 칸·목록에 그림으로 표시됩니다. ‘제목에/내용에’는 글 속에 이모티콘을 넣어요."
+                android:textColor="?attr/appTextMuted"
+                android:textSize="12sp" />
+
+            <LinearLayout
+                android:id="@+id/stickerGroups"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:orientation="vertical" />
+
             <TextView style="@style/SectionLabel" android:text="중요도" />
 
             <TextView

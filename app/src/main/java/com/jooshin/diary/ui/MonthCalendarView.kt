@@ -7,6 +7,7 @@ import android.view.MotionEvent
 import android.view.View
 import android.view.ViewConfiguration
 import android.widget.FrameLayout
+import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.core.content.ContextCompat
@@ -15,6 +16,7 @@ import com.jooshin.diary.util.DateUtil
 import com.jooshin.diary.util.KoreanHolidays
 import com.jooshin.diary.util.LunarCalendar
 import com.jooshin.diary.util.Palette
+import com.jooshin.diary.util.Stickers
 import kotlin.math.abs
 
 /**
@@ -41,11 +43,13 @@ class MonthCalendarView @JvmOverloads constructor(
     private val lunarViews = ArrayList<TextView>(42)
     private val noteViews = ArrayList<TextView>(42)
     private val dotViews = ArrayList<View>(42)
+    private val emoViews = ArrayList<ImageView>(42)
     private val epochDays = LongArray(42)
 
     private var firstOfMonth = DateUtil.firstOfMonthOf(DateUtil.today())
     private var selected = DateUtil.today()
     private var counts: Map<Long, Int> = emptyMap()
+    private var stickers: Map<Long, String> = emptyMap()
     private val palette by lazy { Palette.of(context) }
 
     init {
@@ -160,6 +164,11 @@ class MonthCalendarView @JvmOverloads constructor(
             val dot = View(context).apply {
                 layoutParams = LinearLayout.LayoutParams(dp(16), dp(3)).also { it.topMargin = dp(1) }
             }
+            val emo = ImageView(context).apply {
+                layoutParams = LinearLayout.LayoutParams(dp(22), dp(22)).also { it.topMargin = dp(1) }
+                adjustViewBounds = true
+                visibility = View.GONE
+            }
             val lunar = TextView(context).apply {
                 gravity = Gravity.CENTER
                 textSize = 10f
@@ -183,6 +192,7 @@ class MonthCalendarView @JvmOverloads constructor(
                 )
             }
             box.addView(day)
+            box.addView(emo)
             box.addView(dot)
             box.addView(lunar)
             box.addView(note)
@@ -190,6 +200,7 @@ class MonthCalendarView @JvmOverloads constructor(
             val index = dayViews.size
             cell.setOnClickListener { handleClick(index) }
             dayViews.add(day)
+            emoViews.add(emo)
             dotViews.add(dot)
             lunarViews.add(lunar)
             noteViews.add(note)
@@ -213,10 +224,16 @@ class MonthCalendarView @JvmOverloads constructor(
         onDaySelected?.invoke(ed)
     }
 
-    fun bind(firstOfMonthEpochDay: Long, selectedEpochDay: Long, counts: Map<Long, Int>) {
+    fun bind(
+        firstOfMonthEpochDay: Long,
+        selectedEpochDay: Long,
+        counts: Map<Long, Int>,
+        stickers: Map<Long, String> = emptyMap()
+    ) {
         this.firstOfMonth = firstOfMonthEpochDay
         this.selected = selectedEpochDay
         this.counts = counts
+        this.stickers = stickers
         renderDates()
     }
 
@@ -288,14 +305,24 @@ class MonthCalendarView @JvmOverloads constructor(
                 )
             }
 
-            val cnt = counts[ed] ?: 0
-            if (cnt > 0) {
-                dotViews[i].visibility = View.VISIBLE
-                dotViews[i].setBackgroundResource(
-                    if (isSel) R.drawable.dot_on_selected else R.drawable.dot_entry
-                )
+            // 그 날 대표 이모티콘이 있으면 그림으로, 없으면 점으로 표시
+            val stName = stickers[ed]
+            val bmp = if (!stName.isNullOrEmpty()) Stickers.bitmap(context, stName) else null
+            if (bmp != null) {
+                emoViews[i].setImageBitmap(bmp)
+                emoViews[i].visibility = View.VISIBLE
+                dotViews[i].visibility = View.GONE
             } else {
-                dotViews[i].visibility = View.INVISIBLE
+                emoViews[i].visibility = View.GONE
+                val cnt = counts[ed] ?: 0
+                if (cnt > 0) {
+                    dotViews[i].visibility = View.VISIBLE
+                    dotViews[i].setBackgroundResource(
+                        if (isSel) R.drawable.dot_on_selected else R.drawable.dot_entry
+                    )
+                } else {
+                    dotViews[i].visibility = View.INVISIBLE
+                }
             }
         }
     }

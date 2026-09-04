@@ -14,6 +14,7 @@ import com.jooshin.diary.data.isMultiDay
 import com.jooshin.diary.databinding.ItemEntryBinding
 import com.jooshin.diary.util.DateUtil
 import com.jooshin.diary.util.ImageStore
+import com.jooshin.diary.util.Stickers
 
 class EntryAdapter(
     private val showDate: Boolean = false,
@@ -48,12 +49,24 @@ class EntryAdapter(
         b.entryMood.text = e.mood
         b.entryMood.visibility = if (e.mood.isBlank()) android.view.View.GONE else android.view.View.VISIBLE
 
+        // 대표 이모티콘(그림 배지)
+        val stickerBmp = if (e.sticker.isNotEmpty()) Stickers.bitmap(ctx, e.sticker) else null
+        if (stickerBmp != null) {
+            b.entrySticker.setImageBitmap(stickerBmp)
+            b.entrySticker.visibility = android.view.View.VISIBLE
+        } else {
+            b.entrySticker.setImageDrawable(null)
+            b.entrySticker.visibility = android.view.View.GONE
+        }
+
         val idx = e.dayIndexOf(refDay)
-        b.entryTitle.text = e.title.ifBlank { "(제목 없음)" } +
+        val titleText = e.title.ifBlank { "(제목 없음)" } +
             if (e.isMultiDay && idx > 0) "  (${idx}/${e.dayCount}일차)" else ""
+        // 제목·내용 글 속의 [[s:..]] 이모티콘 토큰을 인라인 그림으로 (웹과 동일)
+        b.entryTitle.text = Stickers.applyInline(ctx, titleText, b.entryTitle.textSize)
 
         val content = e.content.trim()
-        b.entryContent.text = content
+        b.entryContent.text = Stickers.applyInline(ctx, content, b.entryContent.textSize)
         b.entryContent.visibility = if (content.isBlank()) android.view.View.GONE else android.view.View.VISIBLE
 
         val tagText = if (e.tags.isEmpty()) "" else e.tags.joinToString(" ") { "#$it" }

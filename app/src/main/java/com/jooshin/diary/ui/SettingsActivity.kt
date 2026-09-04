@@ -134,7 +134,7 @@ class SettingsActivity : AppCompatActivity() {
         }
         updateSecurityControls()
 
-        binding.tvVersion.text = "버전 ${BuildConfig.VERSION_NAME} · 모든 기록은 이 기기에만 저장됩니다."
+        binding.tvVersion.text = "WeJJoy 버전 ${BuildConfig.VERSION_NAME}"
     }
 
     override fun onResume() {

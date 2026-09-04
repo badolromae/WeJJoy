@@ -7,7 +7,11 @@ import android.view.Gravity
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
+import android.widget.HorizontalScrollView
+import android.widget.ImageView
+import android.widget.LinearLayout
 import android.widget.TextView
+import com.jooshin.diary.util.Stickers
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
@@ -56,6 +60,11 @@ class EntryEditorActivity : AppCompatActivity() {
     private val moodViews = mutableListOf<TextView>()
     private val moodEmojis = listOf("😊", "🙂", "😐", "😔", "😢", "😡", "😴", "🤩", "🥳", "😍", "😎", "🤔")
 
+    // 이모티콘(60종)
+    private var sticker: String = ""              // 대표 이모티콘
+    private var stickerMode: String = "rep"       // rep | title | content
+    private val stickerViews = mutableListOf<Pair<String, ImageView>>()
+
     private val pickImages =
         registerForActivityResult(ActivityResultContracts.PickMultipleVisualMedia(10)) { uris ->
             if (uris.isNotEmpty()) importPhotos(uris)
@@ -84,6 +93,16 @@ class EntryEditorActivity : AppCompatActivity() {
         binding.toolbarEditor.title = if (entryId > 0L) "일기 수정" else "새 일기"
 
         buildMoodPicker()
+        buildStickerPicker()
+        binding.toggleStickerMode.check(R.id.btnModeRep)
+        binding.toggleStickerMode.addOnButtonCheckedListener { _, checkedId, isChecked ->
+            if (!isChecked) return@addOnButtonCheckedListener
+            stickerMode = when (checkedId) {
+                R.id.btnModeTitle -> "title"
+                R.id.btnModeContent -> "content"
+                else -> "rep"
+            }
+        }
 
         binding.sliderImportance.addOnChangeListener { _, value, _ ->
             binding.tvImportance.text = "중요도 ${value.toInt()}%"
@@ -169,6 +188,85 @@ class EntryEditorActivity : AppCompatActivity() {
     private fun selectMood(m: String) {
         mood = m
         moodViews.forEachIndexed { i, tv -> tv.isSelected = (moodEmojis[i] == m) }
+    }
+
+    // ---- 이모티콘(60종) ----
+    private fun buildStickerPicker() {
+        val size = (46 * resources.displayMetrics.density).toInt()
+        val margin = (4 * resources.displayMetrics.density).toInt()
+        val pad = (5 * resources.displayMetrics.density).toInt()
+        for ((groupName, items) in Stickers.GROUPS) {
+            val label = TextView(this).apply {
+                text = groupName
+                textSize = 12f
+                setTextColor(themeMuted())
+                val lp = LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT
+                )
+                lp.topMargin = margin
+                layoutParams = lp
+            }
+            binding.stickerGroups.addView(label)
+
+            val row = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
+            val scroll = HorizontalScrollView(this).apply {
+                isHorizontalScrollBarEnabled = false
+                addView(row)
+            }
+            binding.stickerGroups.addView(scroll)
+
+            for ((name, lbl) in items) {
+                val iv = ImageView(this).apply {
+                    val lp = LinearLayout.LayoutParams(size, size)
+                    lp.marginEnd = margin
+                    layoutParams = lp
+                    setPadding(pad, pad, pad, pad)
+                    setBackgroundResource(R.drawable.bg_mood)
+                    adjustViewBounds = true
+                    contentDescription = lbl
+                    Stickers.bitmap(this@EntryEditorActivity, name)?.let { setImageBitmap(it) }
+                    setOnClickListener { onStickerTap(name) }
+                }
+                stickerViews.add(name to iv)
+                row.addView(iv)
+            }
+        }
+    }
+
+    private fun onStickerTap(name: String) {
+        when (stickerMode) {
+            "title" -> insertSticker(binding.etTitle, name)
+            "content" -> insertSticker(binding.etContent, name)
+            else -> {
+                sticker = if (sticker == name) "" else name
+                refreshStickerSelection()
+            }
+        }
+    }
+
+    private fun refreshStickerSelection() {
+        for ((n, iv) in stickerViews) iv.isSelected = (n == sticker)
+    }
+
+    private fun insertSticker(edit: android.widget.EditText, name: String) {
+        val tok = "[[s:$name]]"
+        val e = edit.text
+        if (e == null) {
+            edit.setText(tok)
+            edit.setSelection(tok.length)
+        } else {
+            val a = edit.selectionStart.coerceAtLeast(0)
+            val b = edit.selectionEnd.coerceAtLeast(0)
+            e.replace(minOf(a, b), maxOf(a, b), tok)
+        }
+        toast(if (stickerMode == "title") "제목에 이모티콘을 넣었어요" else "내용에 이모티콘을 넣었어요")
+    }
+
+    private fun themeMuted(): Int {
+        val tv = android.util.TypedValue()
+        return if (theme.resolveAttribute(R.attr.appTextMuted, tv, true)) {
+            if (tv.resourceId != 0) androidx.core.content.ContextCompat.getColor(this, tv.resourceId) else tv.data
+        } else 0xFF888888.toInt()
     }
 
     // ---- 태그 ----
@@ -391,6 +489,8 @@ class EntryEditorActivity : AppCompatActivity() {
             binding.etTitle.setText(e.title)
             binding.etContent.setText(e.content)
             selectMood(e.mood)
+            sticker = e.sticker
+            refreshStickerSelection()
             binding.sliderImportance.value = e.importance.coerceIn(1, 100).toFloat()
             binding.tvImportance.text = "중요도 ${e.importance}%"
             binding.etTags.setText(e.tags.joinToString(", "))
@@ -434,7 +534,8 @@ class EntryEditorActivity : AppCompatActivity() {
             createdAt = if (entryId > 0L) createdAt else now,
             updatedAt = now,
             uid = entryUid.ifEmpty { newEntryUid() },
-            authorNick = Prefs.myNick(this).ifEmpty { "나" }
+            authorNick = Prefs.myNick(this).ifEmpty { "나" },
+            sticker = sticker
         )
 
         lifecycleScope.launch {
