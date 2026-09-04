@@ -124,6 +124,11 @@ body {
 .mood-row .m { width: 40px; height: 40px; border-radius: 10px; border: 1px solid var(--stroke);
   background: var(--surface); font-size: 20px; cursor: pointer; }
 .mood-row .m.sel { background: var(--mood-bg); border-color: var(--accent); }
+.segmini { margin-bottom: 8px; }
+.segmini button { padding: 8px; font-size: 13px; }
+.inline-emo { height: 1.4em; width: auto; vertical-align: -0.35em; }
+.cell-emo { width: 24px; height: 24px; margin-top: 1px; object-fit: contain; }
+.card .content .inline-emo, .card .title .inline-emo { height: 1.5em; }
 .sticker-row { margin-top: 8px; }
 .sticker-group-label { font-size: 12px; font-weight: 700; color: var(--muted); margin: 12px 0 5px; }
 .sticker-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; }

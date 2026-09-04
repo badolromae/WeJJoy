@@ -27,6 +27,10 @@ const STICKER_GROUPS = [
     ["w_17_surprise","깜짝"],["w_18_think","생각중"],["w_19_sadwalk","축쳐짐"],["w_20_gift","선물"],
   ]],
 ];
+const STICKER_SET = new Set(STICKER_GROUPS.flatMap(([g,items])=>items.map(([n])=>n)));
+const WEB_VERSION = '1.2';
+function firstInline(t){ const m=/\[\[s:([a-z0-9_]+)\]\]/.exec(t||''); return (m && STICKER_SET.has(m[1]))?m[1]:''; }
+function renderRich(t){ let h=escapeHtml(t||''); return h.replace(/\[\[s:([a-z0-9_]+)\]\]/g,(m,n)=>STICKER_SET.has(n)?`<img class="inline-emo" src="${stickerSrc(n)}" alt="">`:''); }
 const MOODS = ["😊","😄","😍","🥰","😌","😐","😢","😭","😠","😴","🤒","🎉","❤️","👍","🙏","💐","☕","🍚"];
 const THEMES = [
   ["green","딥그린"],["blue","스카이블루"],["pink","연핑크"],["mono","블랙+그레이"],
@@ -73,6 +77,7 @@ function renderCalendar(){
   const monthVal = D.ymd(first).m;
   const today = D.today();
   const counts = countByDay();
+  const repMap = daySticker();
 
   let wd = '<div class="cal-wd">';
   ['일','월','화','수','목','금','토'].forEach((w,i)=>{ wd += `<div class="${i===0?'sun':i===6?'sat':''}">${w}</div>`; });
@@ -95,7 +100,7 @@ function renderCalendar(){
     const lunar = (d===1) ? D.lunarShort(ed) : '';
     const note = info.compact || '';
     cells += `<div class="${cls.join(' ')}" data-ed="${ed}">
-      <div class="dnum">${d}</div><div class="dot"></div>
+      <div class="dnum">${d}</div>${repMap.get(ed)?`<img class="cell-emo" src="${stickerSrc(repMap.get(ed))}" alt="">`:'<div class="dot"></div>'}
       <div class="lunar">${lunar}</div><div class="note">${note}</div></div>`;
   }
   $('calendar').innerHTML = wd + cells + '</div>';
@@ -110,6 +115,17 @@ function countByDay(){
     const start = e.dateEpochDay;
     const end = (e.endDateEpochDay && e.endDateEpochDay > start) ? e.endDateEpochDay : start;
     for (let d=start; d<=end; d++) map.set(d, (map.get(d)||0)+1);
+  }
+  return map;
+}
+
+function daySticker(){
+  const map=new Map();
+  for (const e of S.entries.values()){
+    const st=e.sticker||firstInline(e.title)||firstInline(e.content);
+    if(!st) continue;
+    const start=e.dateEpochDay; const end=(e.endDateEpochDay&&e.endDateEpochDay>start)?e.endDateEpochDay:start;
+    for(let d=start; d<=end; d++){ if(!map.has(d)) map.set(d, st); }
   }
   return map;
 }
@@ -179,8 +195,8 @@ function entryCard(e, day){
   el.innerHTML = `
     <div class="time"><div class="t">${escapeHtml(timeTxt)}</div></div>
     <div class="body">
-      <div class="titleline">${moodHtml}<span class="title">${escapeHtml(e.title||'(제목 없음)')}${multiDayLabel(e,day)}</span></div>
-      ${content?`<div class="content">${escapeHtml(content)}</div>`:''}
+      <div class="titleline">${moodHtml}<span class="title">${renderRich(e.title)||'(제목 없음)'}${multiDayLabel(e,day)}</span></div>
+      ${content?`<div class="content">${renderRich(content)}</div>`:''}
       ${tags}
       <div class="impwrap"><div class="imp"><i style="width:${imp}%"></i></div><span class="imppct">${imp}%</span></div>
     </div>`;
@@ -257,7 +273,7 @@ function openEditor(entry){
   $('edEnd').value = String(e.endTimeMinutes ?? -1);
   $('edImp').value = e.importance||50; $('impVal').textContent = (e.importance||50)+'%';
   $('edTags').value = (e.tags||[]).join(', ');
-  renderMoodPicker(); renderStickerPicker(); renderPhotoRow();
+  S.edit._mode = S.edit._mode || 'rep'; renderMoodPicker(); renderStickerModeRow(); renderStickerPicker(); renderPhotoRow();
   $('edDelete').hidden = isNew;
   show('editorModal');
 }
@@ -282,11 +298,33 @@ function renderStickerPicker(){
     items.forEach(([name,label])=>{
       const b=document.createElement('button'); b.className='s'+(S.edit.sticker===name?' sel':''); b.title=label;
       b.innerHTML=`<img src="${stickerSrc(name)}" alt="${label}" loading="lazy">`;
-      b.onclick=()=>{ S.edit.sticker=name; S.edit.mood=''; renderMoodPicker(); renderStickerPicker(); };
+      b.onclick=()=>{
+        const mode=S.edit._mode||'rep';
+        if(mode==='title') insertToken('edTitleInput', name);
+        else if(mode==='content') insertToken('edContent', name);
+        else { S.edit.sticker=(S.edit.sticker===name?'':name); S.edit.mood=''; renderMoodPicker(); }
+        renderStickerPicker();
+      };
       grid.appendChild(b);
     });
     row.appendChild(grid);
   });
+}
+function renderStickerModeRow(){
+  const row=$('stickerModeRow'); if(!row) return; row.innerHTML='';
+  [['rep','대표(달력)'],['title','제목에'],['content','내용에']].forEach(([k,l])=>{
+    const b=document.createElement('button'); b.textContent=l; if((S.edit._mode||'rep')===k) b.className='sel';
+    b.onclick=()=>{ S.edit._mode=k; renderStickerModeRow(); };
+    row.appendChild(b);
+  });
+}
+function insertToken(id, name){
+  const el=$(id); const tok=`[[s:${name}]]`;
+  const st=(el.selectionStart!=null)?el.selectionStart:el.value.length;
+  const en=(el.selectionEnd!=null)?el.selectionEnd:el.value.length;
+  el.value = el.value.slice(0,st)+tok+el.value.slice(en);
+  const pos=st+tok.length; el.focus(); try{ el.setSelectionRange(pos,pos); }catch(_){}
+  toast(id.includes('Title') ? '제목에 이모티콘을 넣었어요' : '내용에 이모티콘을 넣었어요');
 }
 function renderPhotoRow(){
   const row=$('photoRow'); row.innerHTML='';
@@ -371,6 +409,8 @@ function openSettings(){
     chip.onclick=()=>{ localStorage.setItem('wj_theme',k); applyTheme(); openSettings(); };
     tr.appendChild(chip);
   });
+  const sb=document.querySelector('#settingsModal .sheet-body');
+  let vl=document.getElementById('webVerLabel'); if(!vl){ vl=document.createElement('div'); vl.id='webVerLabel'; vl.className='hint'; vl.style.marginTop='18px'; sb.appendChild(vl);} vl.textContent='WeJJoy 웹 버전 '+WEB_VERSION;
   show('settingsModal');
 }
 // read a theme's accent/toolbar from CSS by probing a hidden element
