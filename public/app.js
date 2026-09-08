@@ -26,9 +26,30 @@ const STICKER_GROUPS = [
     ["w_13_come","이리와"],["w_14_tada","짜잔"],["w_15_stretch","기지개"],["w_16_phone","전화해"],
     ["w_17_surprise","깜짝"],["w_18_think","생각중"],["w_19_sadwalk","축쳐짐"],["w_20_gift","선물"],
   ]],
+  ["강아지", [
+    ["dog_01_run","달려갈게"],["dog_02_jump","점프"],["dog_03_wave","안녕"],["dog_04_finger_heart","손하트"],
+    ["dog_05_blowkiss","뽀뽀날림"],["dog_06_cheer","화이팅"],["dog_07_dance","춤"],["dog_08_cry","엉엉"],
+    ["dog_09_angry","화남"],["dog_10_love","사랑"],["dog_11_thumbs","최고"],["dog_12_wink","윙크"],
+    ["dog_13_come","이리와"],["dog_14_tada","짜잔"],["dog_15_stretch","기지개"],["dog_16_phone","전화해"],
+    ["dog_17_surprise","깜짝"],["dog_18_think","생각중"],["dog_19_sadwalk","축쳐짐"],["dog_20_gift","선물"],
+  ]],
+  ["고양이", [
+    ["cat_01_run","달려갈게"],["cat_02_jump","점프"],["cat_03_wave","안녕"],["cat_04_finger_heart","손하트"],
+    ["cat_05_blowkiss","뽀뽀날림"],["cat_06_cheer","화이팅"],["cat_07_dance","춤"],["cat_08_cry","엉엉"],
+    ["cat_09_angry","화남"],["cat_10_love","사랑"],["cat_11_thumbs","최고"],["cat_12_wink","윙크"],
+    ["cat_13_come","이리와"],["cat_14_tada","짜잔"],["cat_15_stretch","기지개"],["cat_16_phone","전화해"],
+    ["cat_17_surprise","깜짝"],["cat_18_think","생각중"],["cat_19_sadwalk","축쳐짐"],["cat_20_gift","선물"],
+  ]],
+  ["강아지&고양이", [
+    ["pair_01_hug","껴안기"],["pair_02_kiss","뽀뽀"],["pair_03_happy","행복"],["pair_04_cheer","화이팅"],
+    ["pair_05_love","사랑해"],["pair_06_thanks","고마워"],["pair_07_sorry","미안해"],["pair_08_celebrate","축하"],
+    ["pair_09_flowers","꽃선물"],["pair_10_walk","산책"],["pair_11_coffee","커피"],["pair_12_yummy","맛있다"],
+    ["pair_13_goodmorning","굿모닝"],["pair_14_goodnight","잘자"],["pair_15_sulk","삐짐"],["pair_16_cry","위로"],
+    ["pair_17_tired","피곤"],["pair_18_ball","공놀이"],["pair_19_thumbs","최고"],["pair_20_bye","바이바이"],
+  ]],
 ];
 const STICKER_SET = new Set(STICKER_GROUPS.flatMap(([g,items])=>items.map(([n])=>n)));
-const WEB_VERSION = '2.1';
+const WEB_VERSION = '2.2';
 function firstInline(t){ const m=/\[\[s:([a-z0-9_]+)\]\]/.exec(t||''); return (m && STICKER_SET.has(m[1]))?m[1]:''; }
 function renderRich(t, big){ let h=escapeHtml(t||''); const cls=big?'inline-emo-big':'inline-emo'; return h.replace(/\[\[s:([a-z0-9_]+)\]\]/g,(m,n)=>STICKER_SET.has(n)?`<img class="${cls}" src="${stickerSrc(n)}" alt="">`:''); }
 const MOODS = ["😊","😄","😍","🥰","😌","😐","😢","😭","😠","😴","🤒","🎉","❤️","👍","🙏","💐","☕","🍚"];

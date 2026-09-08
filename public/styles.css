@@ -87,6 +87,22 @@ body {
 .card .thumb { width: 56px; height: 56px; border-radius: 10px; object-fit: cover; flex-shrink: 0; }
 .empty-msg { text-align: center; color: var(--muted); font-size: 14px; padding: 40px 0; line-height: 1.6; }
 
+/* 넓은 화면(태블릿/PC): 달력 왼쪽 · 일기 오른쪽 2단 */
+@media (min-width: 900px){
+  #app { max-width: 1120px; }
+  .cols { display: flex; align-items: flex-start; gap: 20px; padding: 0 14px; }
+  .cols .header-area { flex: 1.25; position: sticky; top: 62px; }
+  .cols .list-area { flex: 1; padding-top: 6px; min-width: 0; }
+  .cols .hr { display: none; }
+  .cols .calendar { padding: 0; }
+  .cols .cal-grid { grid-auto-rows: 88px; gap: 4px; }
+  .cols .cell .dnum { width: 32px; height: 32px; line-height: 32px; font-size: 17px; }
+  .cols .cell.today .dnum { line-height: 28px; }
+  .cols .cell .lunar, .cols .cell .note { font-size: 11px; }
+  .cols .cell-emo { width: 32px; height: 32px; }
+  .cols .month-title { font-size: 24px; }
+}
+
 /* fab */
 .fab { position: fixed; right: calc(50% - 360px + 20px); bottom: 24px; width: 56px; height: 56px;
   border-radius: 28px; background: var(--accent); color: var(--on-sel); border: 0; font-size: 30px;
