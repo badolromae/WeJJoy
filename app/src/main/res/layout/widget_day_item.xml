@@ -32,6 +32,15 @@
             android:orientation="horizontal"
             android:gravity="center_vertical">
 
+            <ImageView
+                android:id="@+id/di_sticker"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:layout_marginEnd="5dp"
+                android:adjustViewBounds="true"
+                android:contentDescription="이모티콘"
+                android:visibility="gone" />
+
             <TextView
                 android:id="@+id/di_mood"
                 android:layout_width="wrap_content"
