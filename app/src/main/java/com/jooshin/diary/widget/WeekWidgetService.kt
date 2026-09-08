@@ -16,6 +16,7 @@ import com.jooshin.diary.util.DateUtil
 import com.jooshin.diary.util.KoreanHolidays
 import com.jooshin.diary.util.LunarCalendar
 import com.jooshin.diary.util.Palette
+import com.jooshin.diary.util.Stickers
 
 class WeekWidgetService : RemoteViewsService() {
     override fun onGetViewFactory(intent: Intent): RemoteViewsFactory =
@@ -151,10 +152,19 @@ internal fun buildEntryRow(ctx: Context, p: Palette, e: DiaryEntry, day: Long): 
         DateUtil.formatTimeRangeShort(e.dateEpochDay, e.timeMinutes, e.endDay, e.endTimeMinutes)
     )
     rv.setTextColor(R.id.wk_time, p.accent)
-    rv.setTextViewText(R.id.wk_title, e.title.ifBlank { "(제목 없음)" })
+    rv.setTextViewText(R.id.wk_title, Stickers.strip(e.title).ifBlank { "(제목 없음)" })
     rv.setTextColor(R.id.wk_title, p.textPrimary)
     rv.setTextViewText(R.id.wk_mood, e.mood)
     rv.setViewVisibility(R.id.wk_mood, if (e.mood.isBlank()) View.GONE else View.VISIBLE)
+    // 대표 이모티콘을 그림으로 (위젯 텍스트엔 이미지를 못 넣으므로 토큰은 위에서 지웠다)
+    val wkRep = Stickers.repName(e.sticker, e.title, e.content)
+    val wkBmp = if (wkRep.isNotEmpty()) Stickers.bitmapScaled(ctx, wkRep, 60) else null
+    if (wkBmp != null) {
+        rv.setImageViewBitmap(R.id.wk_sticker, wkBmp)
+        rv.setViewVisibility(R.id.wk_sticker, View.VISIBLE)
+    } else {
+        rv.setViewVisibility(R.id.wk_sticker, View.GONE)
+    }
     rv.setProgressBar(R.id.wk_importance, 100, e.importance, false)
     rv.setOnClickFillInIntent(
         R.id.wk_entry_root,

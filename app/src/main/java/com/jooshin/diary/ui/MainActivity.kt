@@ -277,6 +277,18 @@ class MainActivity : AppCompatActivity() {
             val list = dao.getForDay(selectedDay)
             adapter.submitList(list)
             binding.tvEmpty.visibility = if (list.isEmpty()) android.view.View.VISIBLE else android.view.View.GONE
+            // 목록 칸이 너무 좁으면(달력이 화면을 거의 다 차지 — 특히 공휴일로 안내줄이 길 때)
+            // 일기가 안 보이고 스크롤로 달력을 접을 수도 없어 갇힌다. 이럴 땐 달력을 자동으로 접어
+            // 일기가 항상 보이게 한다. (넉넉한 화면에서는 아무 일도 하지 않음)
+            if (list.isNotEmpty()) {
+                binding.recyclerEntries.post {
+                    if (headerFullHeight > 0 && !headerCollapsed &&
+                        binding.recyclerEntries.height < dp(210)
+                    ) {
+                        collapseHeader()
+                    }
+                }
+            }
         }
     }
 

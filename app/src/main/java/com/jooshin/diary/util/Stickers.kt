@@ -43,6 +43,27 @@ object Stickers {
             "w_09_angry" to "화남", "w_10_love" to "사랑", "w_11_thumbs" to "최고", "w_12_wink" to "윙크",
             "w_13_come" to "이리와", "w_14_tada" to "짜잔", "w_15_stretch" to "기지개", "w_16_phone" to "전화해",
             "w_17_surprise" to "깜짝", "w_18_think" to "생각중", "w_19_sadwalk" to "축쳐짐", "w_20_gift" to "선물"
+        ),
+        "강아지" to listOf(
+            "dog_01_run" to "달려갈게", "dog_02_jump" to "점프", "dog_03_wave" to "안녕", "dog_04_finger_heart" to "손하트",
+            "dog_05_blowkiss" to "뽀뽀날림", "dog_06_cheer" to "화이팅", "dog_07_dance" to "춤", "dog_08_cry" to "엉엉",
+            "dog_09_angry" to "화남", "dog_10_love" to "사랑", "dog_11_thumbs" to "최고", "dog_12_wink" to "윙크",
+            "dog_13_come" to "이리와", "dog_14_tada" to "짜잔", "dog_15_stretch" to "기지개", "dog_16_phone" to "전화해",
+            "dog_17_surprise" to "깜짝", "dog_18_think" to "생각중", "dog_19_sadwalk" to "축쳐짐", "dog_20_gift" to "선물"
+        ),
+        "고양이" to listOf(
+            "cat_01_run" to "달려갈게", "cat_02_jump" to "점프", "cat_03_wave" to "안녕", "cat_04_finger_heart" to "손하트",
+            "cat_05_blowkiss" to "뽀뽀날림", "cat_06_cheer" to "화이팅", "cat_07_dance" to "춤", "cat_08_cry" to "엉엉",
+            "cat_09_angry" to "화남", "cat_10_love" to "사랑", "cat_11_thumbs" to "최고", "cat_12_wink" to "윙크",
+            "cat_13_come" to "이리와", "cat_14_tada" to "짜잔", "cat_15_stretch" to "기지개", "cat_16_phone" to "전화해",
+            "cat_17_surprise" to "깜짝", "cat_18_think" to "생각중", "cat_19_sadwalk" to "축쳐짐", "cat_20_gift" to "선물"
+        ),
+        "강아지&고양이" to listOf(
+            "pair_01_hug" to "껴안기", "pair_02_kiss" to "뽀뽀", "pair_03_happy" to "행복", "pair_04_cheer" to "화이팅",
+            "pair_05_love" to "사랑해", "pair_06_thanks" to "고마워", "pair_07_sorry" to "미안해", "pair_08_celebrate" to "축하",
+            "pair_09_flowers" to "꽃선물", "pair_10_walk" to "산책", "pair_11_coffee" to "커피", "pair_12_yummy" to "맛있다",
+            "pair_13_goodmorning" to "굿모닝", "pair_14_goodnight" to "잘자", "pair_15_sulk" to "삐짐", "pair_16_cry" to "위로",
+            "pair_17_tired" to "피곤", "pair_18_ball" to "공놀이", "pair_19_thumbs" to "최고", "pair_20_bye" to "바이바이"
         )
     )
 
@@ -71,6 +92,35 @@ object Stickers {
         val s = if (sizePx > 0) sizePx else bmp.width
         d.setBounds(0, 0, s, s)
         return d
+    }
+
+    private val scaledCache = HashMap<String, Bitmap?>()
+
+    /** 위젯 등 RemoteViews 용으로 작게 줄인 비트맵 (name@px 캐시) */
+    fun bitmapScaled(ctx: Context, name: String, px: Int): Bitmap? {
+        val key = "$name@$px"
+        if (scaledCache.containsKey(key)) return scaledCache[key]
+        val base = bitmap(ctx, name)
+        val out = if (base == null) null else try {
+            Bitmap.createScaledBitmap(base, px, px, true)
+        } catch (t: Throwable) { base }
+        scaledCache[key] = out
+        return out
+    }
+
+    /** "[[s:이름]]" 토큰을 글에서 제거하고 공백을 정리한다. (이미지 못 넣는 위젯 텍스트용) */
+    fun strip(text: String?): String {
+        if (text.isNullOrEmpty()) return ""
+        var s = TOKEN.matcher(text).replaceAll("")
+        s = s.replace(Regex("[ \\t]{2,}"), " ").replace(Regex("\\n{2,}"), "\n")
+        return s.trim()
+    }
+
+    /** 그 일기의 대표 이모티콘 이름: entry.sticker 우선, 없으면 제목/내용 속 첫 이모티콘. */
+    fun repName(sticker: String?, title: String?, content: String?): String {
+        if (!sticker.isNullOrEmpty() && sticker in ALL) return sticker
+        val a = firstInline(title); if (a.isNotEmpty()) return a
+        return firstInline(content)
     }
 
     /** 글 속 첫 번째 이모티콘 토큰의 이름 (없으면 "") — 달력 대표 이모티콘 계산용 */

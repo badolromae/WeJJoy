@@ -16,6 +16,7 @@ import com.jooshin.diary.data.isMultiDay
 import com.jooshin.diary.ui.MainActivity
 import com.jooshin.diary.util.DateUtil
 import com.jooshin.diary.util.Palette
+import com.jooshin.diary.util.Stickers
 import java.time.LocalTime
 
 class DayWidgetService : RemoteViewsService() {
@@ -100,13 +101,22 @@ private fun buildDayItem(ctx: Context, p: Palette, e: DiaryEntry, day: Long): Re
         R.id.di_time,
         DateUtil.formatTimeRangeShort(e.dateEpochDay, e.timeMinutes, e.endDay, e.endTimeMinutes)
     )
-    val titleText = e.title.ifBlank { "(제목 없음)" } +
+    val titleText = Stickers.strip(e.title).ifBlank { "(제목 없음)" } +
         if (e.isMultiDay) "  (${e.dayIndexOf(day)}/${e.dayCount}일차)" else ""
     rv.setTextColor(R.id.di_time, p.accent)
     rv.setTextViewText(R.id.di_title, titleText)
     rv.setTextColor(R.id.di_title, p.textPrimary)
     rv.setTextViewText(R.id.di_mood, e.mood)
     rv.setViewVisibility(R.id.di_mood, if (e.mood.isBlank()) View.GONE else View.VISIBLE)
+    // 대표 이모티콘을 그림으로
+    val diRep = Stickers.repName(e.sticker, e.title, e.content)
+    val diBmp = if (diRep.isNotEmpty()) Stickers.bitmapScaled(ctx, diRep, 56) else null
+    if (diBmp != null) {
+        rv.setImageViewBitmap(R.id.di_sticker, diBmp)
+        rv.setViewVisibility(R.id.di_sticker, View.VISIBLE)
+    } else {
+        rv.setViewVisibility(R.id.di_sticker, View.GONE)
+    }
     rv.setTextViewText(R.id.di_importance_text, "${e.importance}%")
     rv.setTextColor(R.id.di_importance_text, p.textMuted)
     rv.setProgressBar(R.id.di_importance, 100, e.importance, false)
@@ -116,7 +126,7 @@ private fun buildDayItem(ctx: Context, p: Palette, e: DiaryEntry, day: Long): Re
     rv.setTextColor(R.id.di_tags, p.accent)
     rv.setViewVisibility(R.id.di_tags, if (tagText.isBlank()) View.GONE else View.VISIBLE)
 
-    val content = e.content.trim()
+    val content = Stickers.strip(e.content)
     rv.setTextViewText(R.id.di_content, content)
     rv.setTextColor(R.id.di_content, p.textMuted)
     rv.setViewVisibility(R.id.di_content, if (content.isBlank()) View.GONE else View.VISIBLE)
