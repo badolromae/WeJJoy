@@ -1,7 +1,6 @@
 package com.jooshin.diary.ui
 
 import android.Manifest
-import android.animation.ValueAnimator
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
@@ -16,12 +15,12 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
 import com.jooshin.diary.R
 import com.jooshin.diary.data.AppDatabase
 import com.jooshin.diary.data.countsByDay
 import com.jooshin.diary.data.stickersByDay
 import com.jooshin.diary.databinding.ActivityMainBinding
+import com.jooshin.diary.notify.ReminderScheduler
 import com.jooshin.diary.util.AppLock
 import com.jooshin.diary.util.DateUtil
 import com.jooshin.diary.util.KoreanHolidays
@@ -29,6 +28,7 @@ import com.jooshin.diary.util.LunarCalendar
 import com.jooshin.diary.sync.SyncManager
 import com.jooshin.diary.util.Palette
 import com.jooshin.diary.util.Prefs
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 class MainActivity : AppCompatActivity() {
@@ -42,11 +42,6 @@ class MainActivity : AppCompatActivity() {
 
     private var currentMonthFirst = DateUtil.firstOfMonthOf(DateUtil.today())
     private var selectedDay = DateUtil.today()
-
-    // 목록을 위아래로 드래그할 때 달력 영역(headerContainer)을 같이 접었다 펼치기 위한 상태
-    private var headerFullHeight = 0
-    private var headerCollapsed = false
-    private var headerAnimator: ValueAnimator? = null
 
     private val requestNotif =
         registerForActivityResult(ActivityResultContracts.RequestPermission()) { }
@@ -86,76 +81,9 @@ class MainActivity : AppCompatActivity() {
         }
         binding.fabAdd.setOnClickListener { openEditorNew(selectedDay) }
 
-        setupHeaderCollapse()
+        // 목록은 NestedScrollView 안에서 통째로 스크롤되므로 자체 스크롤은 끈다.
+        binding.recyclerEntries.isNestedScrollingEnabled = false
         maybeRequestNotifPermission()
-    }
-
-    /**
-     * 일기 목록(recyclerEntries)을 위로 드래그하면 달력 영역(headerContainer)이 같이 접히고,
-     * 목록을 아래로 당기거나 맨 위까지 올리면 다시 펼쳐진다.
-     *
-     * 전에는 CoordinatorLayout + AppBarLayout 의 스크롤 연동 기능에 맡겼었는데, 실제로는
-     * AppBarLayout 자체의 "직접 드래그하면 접히는" 내장 동작이 달력의 좌우 스와이프(월 이동)
-     * 제스처와 터치를 서로 먼저 가로채려고 경합하는 문제가 있었다. 그래서 여기서는
-     * CoordinatorLayout 을 쓰지 않고, 목록의 스크롤 방향을 직접 보고 애니메이션으로
-     * 접었다 펼치는 방식으로 바꿨다. (이러면 달력 스와이프와 전혀 부딪히지 않는다)
-     */
-    private fun setupHeaderCollapse() {
-        binding.headerContainer.post {
-            if (headerFullHeight <= 0) headerFullHeight = binding.headerContainer.height
-        }
-        binding.recyclerEntries.addOnScrollListener(object : RecyclerView.OnScrollListener() {
-            override fun onScrolled(rv: RecyclerView, dx: Int, dy: Int) {
-                if (headerFullHeight <= 0) return
-                if (!rv.canScrollVertically(-1)) {
-                    expandHeader()
-                    return
-                }
-                if (dy > 4 && !headerCollapsed) collapseHeader()
-                else if (dy < -4 && headerCollapsed) expandHeader()
-            }
-        })
-        // 목록이 맨 위까지 스크롤된 다음에도 계속 아래로 당기면(더 스크롤할 곳이 없는 상태),
-        // onScrolled 만으로는 그 "당기는 동작" 자체를 알 수가 없다(목록이 실제로 움직이지
-        // 않으니까). 그래서 이 "남은 드래그량"은 MainRootLayout 이 중첩 스크롤로 따로 알려주고,
-        // 그 값만큼 손가락을 따라 달력을 실시간으로 펼친다.
-        binding.mainRoot.onOverscrollDown = { extraPx ->
-            if (headerFullHeight > 0) {
-                headerAnimator?.cancel()
-                val newHeight = (binding.headerContainer.height + extraPx).coerceIn(0, headerFullHeight)
-                val lp = binding.headerContainer.layoutParams
-                lp.height = newHeight
-                binding.headerContainer.layoutParams = lp
-                if (newHeight >= headerFullHeight) headerCollapsed = false
-            }
-        }
-    }
-
-    private fun collapseHeader() {
-        headerCollapsed = true
-        animateHeaderTo(0)
-    }
-
-    private fun expandHeader() {
-        headerCollapsed = false
-        animateHeaderTo(headerFullHeight)
-    }
-
-    private fun animateHeaderTo(target: Int) {
-        if (headerFullHeight <= 0) return
-        val current = binding.headerContainer.height
-        if (current == target && headerAnimator?.isRunning != true) return
-        headerAnimator?.cancel()
-        headerAnimator = ValueAnimator.ofInt(current, target).apply {
-            duration = 180
-            addUpdateListener { a ->
-                val v = a.animatedValue as Int
-                val lp = binding.headerContainer.layoutParams
-                lp.height = v
-                binding.headerContainer.layoutParams = lp
-            }
-            start()
-        }
     }
 
     override fun onNewIntent(intent: Intent) {
@@ -177,6 +105,12 @@ class MainActivity : AppCompatActivity() {
         // 상대가 올린 내용이 도착하면 화면을 새로 그린다
         SyncManager.onRemoteChange = { runOnUiThread { loadMonth(); loadEntries() } }
         SyncManager.start(this)
+
+        // 앱을 열 때 앞으로 울릴 모든 알림을 다시 예약한다.
+        // (상대가 올려 동기화된 일기의 알림도 이 기기에서 확실히 울리도록 — 공유 알림)
+        lifecycleScope.launch(Dispatchers.IO) {
+            try { ReminderScheduler.rescheduleAllFuture(this@MainActivity) } catch (_: Exception) {}
+        }
 
         loadMonth()
         loadEntries()
@@ -277,18 +211,6 @@ class MainActivity : AppCompatActivity() {
             val list = dao.getForDay(selectedDay)
             adapter.submitList(list)
             binding.tvEmpty.visibility = if (list.isEmpty()) android.view.View.VISIBLE else android.view.View.GONE
-            // 목록 칸이 너무 좁으면(달력이 화면을 거의 다 차지 — 특히 공휴일로 안내줄이 길 때)
-            // 일기가 안 보이고 스크롤로 달력을 접을 수도 없어 갇힌다. 이럴 땐 달력을 자동으로 접어
-            // 일기가 항상 보이게 한다. (넉넉한 화면에서는 아무 일도 하지 않음)
-            if (list.isNotEmpty()) {
-                binding.recyclerEntries.post {
-                    if (headerFullHeight > 0 && !headerCollapsed &&
-                        binding.recyclerEntries.height < dp(210)
-                    ) {
-                        collapseHeader()
-                    }
-                }
-            }
         }
     }
 

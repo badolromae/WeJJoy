@@ -101,16 +101,18 @@ private fun buildDayItem(ctx: Context, p: Palette, e: DiaryEntry, day: Long): Re
         R.id.di_time,
         DateUtil.formatTimeRangeShort(e.dateEpochDay, e.timeMinutes, e.endDay, e.endTimeMinutes)
     )
-    val titleText = Stickers.strip(e.title).ifBlank { "(제목 없음)" } +
-        if (e.isMultiDay) "  (${e.dayIndexOf(day)}/${e.dayCount}일차)" else ""
     rv.setTextColor(R.id.di_time, p.accent)
+    // 대표 이모티콘을 그림으로
+    val diRep = Stickers.repName(e.sticker, e.title, e.content)
+    val diBmp = if (diRep.isNotEmpty()) Stickers.bitmapScaled(ctx, diRep, 56) else null
+    // 제목이 이모티콘만이라 글자가 비면 "(제목 없음)" 대신 빈칸 — 옆 이모티콘 그림이 대신 보인다
+    val diStripped = Stickers.strip(e.title)
+    val titleText = (if (diStripped.isBlank()) (if (diRep.isNotEmpty()) "" else "(제목 없음)") else diStripped) +
+        if (e.isMultiDay) "  (${e.dayIndexOf(day)}/${e.dayCount}일차)" else ""
     rv.setTextViewText(R.id.di_title, titleText)
     rv.setTextColor(R.id.di_title, p.textPrimary)
     rv.setTextViewText(R.id.di_mood, e.mood)
     rv.setViewVisibility(R.id.di_mood, if (e.mood.isBlank()) View.GONE else View.VISIBLE)
-    // 대표 이모티콘을 그림으로
-    val diRep = Stickers.repName(e.sticker, e.title, e.content)
-    val diBmp = if (diRep.isNotEmpty()) Stickers.bitmapScaled(ctx, diRep, 56) else null
     if (diBmp != null) {
         rv.setImageViewBitmap(R.id.di_sticker, diBmp)
         rv.setViewVisibility(R.id.di_sticker, View.VISIBLE)

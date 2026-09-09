@@ -152,13 +152,18 @@ internal fun buildEntryRow(ctx: Context, p: Palette, e: DiaryEntry, day: Long): 
         DateUtil.formatTimeRangeShort(e.dateEpochDay, e.timeMinutes, e.endDay, e.endTimeMinutes)
     )
     rv.setTextColor(R.id.wk_time, p.accent)
-    rv.setTextViewText(R.id.wk_title, Stickers.strip(e.title).ifBlank { "(제목 없음)" })
+    // 대표 이모티콘을 그림으로 (위젯 텍스트엔 이미지를 못 넣으므로 토큰은 지운다)
+    val wkRep = Stickers.repName(e.sticker, e.title, e.content)
+    val wkBmp = if (wkRep.isNotEmpty()) Stickers.bitmapScaled(ctx, wkRep, 60) else null
+    // 제목이 이모티콘만이라 글자가 비면 "(제목 없음)" 대신 빈칸 — 옆 이모티콘 그림이 대신 보인다
+    val wkStripped = Stickers.strip(e.title)
+    rv.setTextViewText(
+        R.id.wk_title,
+        if (wkStripped.isBlank()) (if (wkRep.isNotEmpty()) "" else "(제목 없음)") else wkStripped
+    )
     rv.setTextColor(R.id.wk_title, p.textPrimary)
     rv.setTextViewText(R.id.wk_mood, e.mood)
     rv.setViewVisibility(R.id.wk_mood, if (e.mood.isBlank()) View.GONE else View.VISIBLE)
-    // 대표 이모티콘을 그림으로 (위젯 텍스트엔 이미지를 못 넣으므로 토큰은 위에서 지웠다)
-    val wkRep = Stickers.repName(e.sticker, e.title, e.content)
-    val wkBmp = if (wkRep.isNotEmpty()) Stickers.bitmapScaled(ctx, wkRep, 60) else null
     if (wkBmp != null) {
         rv.setImageViewBitmap(R.id.wk_sticker, wkBmp)
         rv.setViewVisibility(R.id.wk_sticker, View.VISIBLE)

@@ -5,6 +5,7 @@ import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.os.Build
+import com.jooshin.diary.data.AppDatabase
 import com.jooshin.diary.data.DiaryEntry
 import com.jooshin.diary.util.Prefs
 import java.util.Calendar
@@ -91,5 +92,16 @@ object ReminderScheduler {
 
     fun cancelEntry(c: Context, entryId: Long) {
         am(c).cancel(pending(c, ACTION_ENTRY, RC_ENTRY_BASE + entryId.toInt(), entryId))
+    }
+
+    /**
+     * 앞으로 울릴 모든 일기 알림을 다시 등록한다. 앱을 열 때마다 호출해서,
+     * 상대가 올려서 동기화된 일기(공유 알림)까지 이 기기에서 확실히 예약되도록 한다.
+     */
+    suspend fun rescheduleAllFuture(c: Context) {
+        val now = System.currentTimeMillis()
+        AppDatabase.get(c).diaryDao().getWithReminders().forEach { e ->
+            if (e.reminderAtMillis > now) scheduleEntry(c, e)
+        }
     }
 }
