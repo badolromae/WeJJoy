@@ -21,49 +21,23 @@ object Stickers {
 
     /** (그룹이름, [(파일이름, 라벨)...]) — 웹의 STICKER_GROUPS 와 동일 */
     val GROUPS: List<Pair<String, List<Pair<String, String>>>> = listOf(
-        "2인" to listOf(
-            "couple_01_love_hug" to "사랑", "couple_02_kiss" to "뽀뽀", "couple_03_happy" to "행복",
-            "couple_04_cheer" to "화이팅", "couple_05_love_sign" to "사랑해", "couple_06_thanks" to "고마워",
-            "couple_07_sorry" to "미안해", "couple_08_celebrate" to "축하", "couple_09_flowers" to "꽃선물",
-            "couple_10_date" to "데이트", "couple_11_coffee" to "커피", "couple_12_yummy" to "맛있다",
-            "couple_13_goodmorning" to "굿모닝", "couple_14_goodnight" to "잘자", "couple_15_sulk" to "삐짐",
-            "couple_16_cry" to "위로", "couple_17_tired" to "피곤", "couple_18_sick" to "아파요",
-            "couple_19_thumbs" to "최고", "couple_20_bye" to "바이바이"
+        "둘이A" to listOf(
+            "ac_01" to "사랑해", "ac_02" to "안녕", "ac_03" to "최고", "ac_04" to "삐짐", "ac_05" to "미안", "ac_06" to "화이팅", "ac_07" to "감동", "ac_08" to "기다려", "ac_09" to "심쿵", "ac_10" to "잘자", "ac_11" to "맘마", "ac_12" to "놀람", "ac_13" to "분노", "ac_14" to "부끄", "ac_15" to "흥", "ac_16" to "헉", "ac_17" to "신나", "ac_18" to "메롱"
         ),
-        "남편" to listOf(
-            "h_01_run" to "달려갈게", "h_02_jump" to "점프", "h_03_wave" to "안녕", "h_04_finger_heart" to "손하트",
-            "h_05_blowkiss" to "뽀뽀날림", "h_06_cheer" to "화이팅", "h_07_dance" to "춤", "h_08_cry" to "엉엉",
-            "h_09_angry" to "화남", "h_10_love" to "사랑", "h_11_thumbs" to "최고", "h_12_wink" to "윙크",
-            "h_13_come" to "이리와", "h_14_tada" to "짜잔", "h_15_stretch" to "기지개", "h_16_phone" to "전화해",
-            "h_17_surprise" to "깜짝", "h_18_think" to "생각중", "h_19_sadwalk" to "축쳐짐", "h_20_gift" to "선물"
+        "아내A" to listOf(
+            "aw_01" to "사랑해", "aw_02" to "기다려", "aw_03" to "화이팅", "aw_04" to "안녕", "aw_05" to "미안", "aw_06" to "심쿵", "aw_07" to "잘자", "aw_08" to "맘마", "aw_09" to "최고", "aw_10" to "감동", "aw_11" to "헉", "aw_12" to "놀람", "aw_13" to "부끄", "aw_14" to "새침", "aw_15" to "신나", "aw_16" to "졸림", "aw_17" to "흥", "aw_18" to "삐짐", "aw_19" to "분노", "aw_20" to "축하", "aw_21" to "메롱"
         ),
-        "아내" to listOf(
-            "w_01_run" to "달려갈게", "w_02_jump" to "점프", "w_03_wave" to "안녕", "w_04_finger_heart" to "손하트",
-            "w_05_blowkiss" to "뽀뽀날림", "w_06_cheer" to "화이팅", "w_07_dance" to "춤", "w_08_cry" to "엉엉",
-            "w_09_angry" to "화남", "w_10_love" to "사랑", "w_11_thumbs" to "최고", "w_12_wink" to "윙크",
-            "w_13_come" to "이리와", "w_14_tada" to "짜잔", "w_15_stretch" to "기지개", "w_16_phone" to "전화해",
-            "w_17_surprise" to "깜짝", "w_18_think" to "생각중", "w_19_sadwalk" to "축쳐짐", "w_20_gift" to "선물"
+        "남편A" to listOf(
+            "ah_01" to "사랑해", "ah_02" to "기다려", "ah_03" to "화이팅", "ah_04" to "안녕", "ah_05" to "미안", "ah_06" to "심쿵", "ah_07" to "무표정", "ah_08" to "잘자", "ah_09" to "굿", "ah_10" to "맘마", "ah_11" to "최고", "ah_12" to "감동", "ah_13" to "헉", "ah_14" to "부끄", "ah_15" to "신나", "ah_16" to "졸림", "ah_17" to "흥", "ah_18" to "삐짐", "ah_19" to "분노", "ah_20" to "축하", "ah_21" to "메롱"
         ),
-        "강아지" to listOf(
-            "dog_01_run" to "달려갈게", "dog_02_jump" to "점프", "dog_03_wave" to "안녕", "dog_04_finger_heart" to "손하트",
-            "dog_05_blowkiss" to "뽀뽀날림", "dog_06_cheer" to "화이팅", "dog_07_dance" to "춤", "dog_08_cry" to "엉엉",
-            "dog_09_angry" to "화남", "dog_10_love" to "사랑", "dog_11_thumbs" to "최고", "dog_12_wink" to "윙크",
-            "dog_13_come" to "이리와", "dog_14_tada" to "짜잔", "dog_15_stretch" to "기지개", "dog_16_phone" to "전화해",
-            "dog_17_surprise" to "깜짝", "dog_18_think" to "생각중", "dog_19_sadwalk" to "축쳐짐", "dog_20_gift" to "선물"
+        "둘이B" to listOf(
+            "bc_01" to "안녕", "bc_02" to "사랑해", "bc_03" to "최고야", "bc_04" to "보고싶어", "bc_05" to "배고파", "bc_06" to "헉", "bc_07" to "놀람", "bc_08" to "고마워", "bc_09" to "미안해", "bc_10" to "잘자", "bc_11" to "좋은아침", "bc_12" to "뭐먹지", "bc_13" to "같이가자", "bc_14" to "기다려줘", "bc_15" to "힘내", "bc_16" to "축하해", "bc_17" to "우리부부", "bc_18" to "꼭안아줘", "bc_19" to "삐졌어", "bc_20" to "행복해", "bc_21" to "뽀뽀"
         ),
-        "고양이" to listOf(
-            "cat_01_run" to "달려갈게", "cat_02_jump" to "점프", "cat_03_wave" to "안녕", "cat_04_finger_heart" to "손하트",
-            "cat_05_blowkiss" to "뽀뽀날림", "cat_06_cheer" to "화이팅", "cat_07_dance" to "춤", "cat_08_cry" to "엉엉",
-            "cat_09_angry" to "화남", "cat_10_love" to "사랑", "cat_11_thumbs" to "최고", "cat_12_wink" to "윙크",
-            "cat_13_come" to "이리와", "cat_14_tada" to "짜잔", "cat_15_stretch" to "기지개", "cat_16_phone" to "전화해",
-            "cat_17_surprise" to "깜짝", "cat_18_think" to "생각중", "cat_19_sadwalk" to "축쳐짐", "cat_20_gift" to "선물"
+        "아내B" to listOf(
+            "bw_01" to "안녕", "bw_02" to "사랑해", "bw_03" to "신나요", "bw_04" to "감동이야", "bw_05" to "헤헤", "bw_06" to "메롱", "bw_07" to "삐짐", "bw_08" to "풀죽", "bw_09" to "울지마", "bw_10" to "졸려", "bw_11" to "배고파", "bw_12" to "최고", "bw_13" to "부끄러워", "bw_14" to "기다려", "bw_15" to "고마워", "bw_16" to "미안해", "bw_17" to "보고싶어", "bw_18" to "화났어", "bw_19" to "행복해", "bw_20" to "잘자", "bw_21" to "뿅"
         ),
-        "강아지&고양이" to listOf(
-            "pair_01_hug" to "껴안기", "pair_02_kiss" to "뽀뽀", "pair_03_happy" to "행복", "pair_04_cheer" to "화이팅",
-            "pair_05_love" to "사랑해", "pair_06_thanks" to "고마워", "pair_07_sorry" to "미안해", "pair_08_celebrate" to "축하",
-            "pair_09_flowers" to "꽃선물", "pair_10_walk" to "산책", "pair_11_coffee" to "커피", "pair_12_yummy" to "맛있다",
-            "pair_13_goodmorning" to "굿모닝", "pair_14_goodnight" to "잘자", "pair_15_sulk" to "삐짐", "pair_16_cry" to "위로",
-            "pair_17_tired" to "피곤", "pair_18_ball" to "공놀이", "pair_19_thumbs" to "최고", "pair_20_bye" to "바이바이"
+        "남편B" to listOf(
+            "bh_01" to "안녕", "bh_02" to "사랑해", "bh_03" to "든든하지", "bh_04" to "헉", "bh_05" to "최고야", "bh_06" to "배고파", "bh_07" to "밥줘", "bh_08" to "졸려", "bh_09" to "힘내", "bh_10" to "걱정마", "bh_11" to "미안해", "bh_12" to "고마워", "bh_13" to "보고싶어", "bh_14" to "삐졌어", "bh_15" to "화해하자", "bh_16" to "기다릴게", "bh_17" to "출발", "bh_18" to "잘자", "bh_19" to "좋은아침", "bh_20" to "아내최고", "bh_21" to "뽀뽀"
         )
     )
 
