@@ -61,21 +61,34 @@ class MonthCalendarView @JvmOverloads constructor(
 
     private fun dp(v: Int) = (v * resources.displayMetrics.density).toInt()
 
-    // 좌우 스와이프로 월 이동: 가로로 크게 움직이면 이 뷰가 터치를 가로채 스와이프로 처리하고,
-    // 그렇지 않으면(가벼운 탭이면) 평소처럼 날짜 칸의 클릭이 그대로 동작한다.
-    // (예전엔 GestureDetector 의 onFling 속도 판정에 맡겼는데, 손가락을 빠르게 튕기지 않으면
-    //  인식이 안 되는 경우가 있어서, 손을 뗄 때의 실제 이동 거리만으로 더 확실하게 판정한다.)
+    // 좌우 스와이프로 월 이동. 이 달력은 위아래로 스크롤되는 화면(NestedScrollView) 안에 들어 있어서,
+    // 가로 스와이프를 하면 바깥 스크롤이 먼저 가로채 월 이동이 안 되는 충돌이 생긴다.
+    // 그래서: 손을 대면 일단 바깥 스크롤이 못 가로채게 막아두고, 방향을 판단한다.
+    //   - 가로로 움직이면 → 이 뷰가 스와이프로 처리(계속 바깥 차단)
+    //   - 세로로 움직이면 → 막았던 걸 풀어 바깥이 위아래 스크롤을 하게 넘긴다
+    //   - 거의 안 움직이면(탭) → 날짜 칸 클릭이 그대로 동작
     override fun onInterceptTouchEvent(ev: MotionEvent): Boolean {
         when (ev.actionMasked) {
             MotionEvent.ACTION_DOWN -> {
                 downX = ev.x; downY = ev.y; swiping = false
+                // 방향이 정해질 때까지 바깥(세로 스크롤)이 이 제스처를 못 가로채게 막는다.
+                parent?.requestDisallowInterceptTouchEvent(true)
             }
             MotionEvent.ACTION_MOVE -> {
                 val dx = ev.x - downX
                 val dy = ev.y - downY
-                if (!swiping && abs(dx) > touchSlop && abs(dx) > abs(dy)) swiping = true
+                if (!swiping) {
+                    if (abs(dx) > touchSlop && abs(dx) > abs(dy)) {
+                        swiping = true          // 가로 스와이프 확정 → 계속 바깥 차단
+                    } else if (abs(dy) > touchSlop && abs(dy) > abs(dx)) {
+                        // 세로 이동 → 바깥(NestedScrollView)이 위아래 스크롤하도록 넘긴다
+                        parent?.requestDisallowInterceptTouchEvent(false)
+                    }
+                }
             }
-            MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {} // 최종 판정은 onTouchEvent 에서
+            MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
+                parent?.requestDisallowInterceptTouchEvent(false)
+            }
         }
         return swiping
     }
@@ -84,6 +97,7 @@ class MonthCalendarView @JvmOverloads constructor(
         when (event.actionMasked) {
             MotionEvent.ACTION_DOWN -> {
                 downX = event.x; downY = event.y
+                parent?.requestDisallowInterceptTouchEvent(true)
             }
             MotionEvent.ACTION_MOVE -> {
                 val dx = event.x - downX
@@ -93,12 +107,16 @@ class MonthCalendarView @JvmOverloads constructor(
             MotionEvent.ACTION_UP -> {
                 val dx = event.x - downX
                 val dy = event.y - downY
-                if (swiping && abs(dx) > dp(60) && abs(dx) > abs(dy)) {
+                if (swiping && abs(dx) > dp(48) && abs(dx) > abs(dy)) {
                     onSwipeMonth?.invoke(if (dx < 0) 1 else -1)
                 }
                 swiping = false
+                parent?.requestDisallowInterceptTouchEvent(false)
             }
-            MotionEvent.ACTION_CANCEL -> swiping = false
+            MotionEvent.ACTION_CANCEL -> {
+                swiping = false
+                parent?.requestDisallowInterceptTouchEvent(false)
+            }
         }
         return true
     }
