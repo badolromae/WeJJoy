@@ -49,7 +49,7 @@ const STICKER_GROUPS = [
   ]],
 ];
 const STICKER_SET = new Set(STICKER_GROUPS.flatMap(([g,items])=>items.map(([n])=>n)));
-const WEB_VERSION = '2.2';
+const WEB_VERSION = '3.0';
 function firstInline(t){ const m=/\[\[s:([a-z0-9_]+)\]\]/.exec(t||''); return (m && STICKER_SET.has(m[1]))?m[1]:''; }
 function renderRich(t, big){ let h=escapeHtml(t||''); const cls=big?'inline-emo-big':'inline-emo'; return h.replace(/\[\[s:([a-z0-9_]+)\]\]/g,(m,n)=>STICKER_SET.has(n)?`<img class="${cls}" src="${stickerSrc(n)}" alt="">`:''); }
 const MOODS = ["😊","😄","😍","🥰","😌","😐","😢","😭","😠","😴","🤒","🎉","❤️","👍","🙏","💐","☕","🍚"];
@@ -194,6 +194,46 @@ function renderList(){
   box.innerHTML = '';
   $('emptyMsg').hidden = list.length>0;
   for (const e of list) box.appendChild(entryCard(e, day));
+  renderWeek();
+}
+
+// ================================================================ 주간 일정(주일정) 패널
+const WK_DOW = ['일','월','화','수','목','금','토'];
+function stripInline(t){ return (t||'').replace(/\[\[s:[a-z0-9_]+\]\]/g,'').replace(/\s+/g,' ').trim(); }
+function weekStickerName(e){ return e.sticker || firstInline(e.title) || firstInline(e.content) || ''; }
+
+function wkRow(e, d){
+  const st = weekStickerName(e);
+  const icon = st ? `<img class="wk-emo" src="${stickerSrc(st)}" alt="">`
+             : (e.mood ? `<span class="wk-mood">${escapeHtml(e.mood)}</span>` : '');
+  const title = stripInline(e.title) || (st ? '' : '(제목 없음)');
+  return `<div class="wk-row">${icon}<span class="wk-title">${escapeHtml(title)}${multiDayLabel(e,d)}</span></div>`;
+}
+
+function renderWeek(){
+  const box = $('weekArea'); if(!box) return;
+  const sel = S.selected;
+  const start = sel - D.dow(sel);   // 그 주의 일요일
+  const today = D.today();
+  let html = `<div class="week-head">주간 일정</div>`;
+  for (let i=0;i<7;i++){
+    const d = start + i;
+    const info = Holidays.info(d);
+    const dow = D.dow(d);
+    const {m, d:dd} = D.ymd(d);
+    const col = (dow===0||info.isHoliday) ? 'var(--sun)' : (dow===6 ? 'var(--sat)' : 'var(--text)');
+    const dateLabel = `${m}/${dd} (${WK_DOW[dow]})` + (info.full ? `  ·  ${escapeHtml(info.full)}` : '');
+    const list = entriesForDay(d);
+    const rows = list.length ? list.map(e=>wkRow(e,d)).join('') : `<div class="wk-empty">기록 없음</div>`;
+    html += `<div class="wk-day${d===sel?' sel':''}${d===today?' today':''}" data-ed="${d}">
+      <div class="wk-date" style="color:${col}">${dateLabel}</div>
+      <div class="wk-entries">${rows}</div>
+    </div>`;
+  }
+  box.innerHTML = html;
+  box.querySelectorAll('.wk-day').forEach(el=>{
+    el.onclick = ()=> selectDay(Number(el.dataset.ed));
+  });
 }
 
 function multiDayLabel(e, day){
