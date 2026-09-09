@@ -76,13 +76,13 @@ class EntryDetailActivity : AppCompatActivity() {
         binding.tvDetailMood.visibility = if (e.mood.isBlank()) View.GONE else View.VISIBLE
 
         binding.tvDetailTitle.text = Stickers.applyInline(
-            this, e.title.ifBlank { "(제목 없음)" }, binding.tvDetailTitle.textSize
+            this, e.title.ifBlank { "(제목 없음)" }, binding.tvDetailTitle.textSize, 2.4f
         )
 
         val content = e.content.trim()
         binding.tvDetailContent.text =
             if (content.isEmpty()) "(내용 없음)"
-            else Stickers.applyInline(this, content, binding.tvDetailContent.textSize, 2.6f)
+            else Stickers.applyInline(this, content, binding.tvDetailContent.textSize, 5.0f)
 
         binding.chipDetailTags.removeAllViews()
         for (t in e.tags) {

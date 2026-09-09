@@ -63,10 +63,10 @@ class EntryAdapter(
         val titleText = e.title.ifBlank { "(제목 없음)" } +
             if (e.isMultiDay && idx > 0) "  (${idx}/${e.dayCount}일차)" else ""
         // 제목·내용 글 속의 [[s:..]] 이모티콘 토큰을 인라인 그림으로 (웹과 동일)
-        b.entryTitle.text = Stickers.applyInline(ctx, titleText, b.entryTitle.textSize)
+        b.entryTitle.text = Stickers.applyInline(ctx, titleText, b.entryTitle.textSize, 2.4f)
 
         val content = e.content.trim()
-        b.entryContent.text = Stickers.applyInline(ctx, content, b.entryContent.textSize)
+        b.entryContent.text = Stickers.applyInline(ctx, content, b.entryContent.textSize, 3.6f)
         b.entryContent.visibility = if (content.isBlank()) android.view.View.GONE else android.view.View.VISIBLE
 
         val tagText = if (e.tags.isEmpty()) "" else e.tags.joinToString(" ") { "#$it" }

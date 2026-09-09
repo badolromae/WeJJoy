@@ -62,7 +62,7 @@ class EntryEditorActivity : AppCompatActivity() {
 
     // 이모티콘(60종)
     private var sticker: String = ""              // 대표 이모티콘
-    private var stickerMode: String = "rep"       // rep | title | content
+    private var lastFocused: android.widget.EditText? = null  // 마지막으로 포커스된 글칸(제목/내용)
     private val stickerViews = mutableListOf<Pair<String, ImageView>>()
 
     private val pickImages =
@@ -94,14 +94,13 @@ class EntryEditorActivity : AppCompatActivity() {
 
         buildMoodPicker()
         buildStickerPicker()
-        binding.toggleStickerMode.check(R.id.btnModeRep)
-        binding.toggleStickerMode.addOnButtonCheckedListener { _, checkedId, isChecked ->
-            if (!isChecked) return@addOnButtonCheckedListener
-            stickerMode = when (checkedId) {
-                R.id.btnModeTitle -> "title"
-                R.id.btnModeContent -> "content"
-                else -> "rep"
-            }
+        // 제목/내용 칸 중 마지막으로 포커스된 곳을 기억한다. 그 칸이 열려 있을 때 이모티콘을 누르면
+        // 그 칸에 들어간다. (글칸을 누르면 '대표로 지정'은 자동으로 꺼져 바로 글칸에 넣게 된다)
+        binding.etTitle.setOnFocusChangeListener { _, has ->
+            if (has) { lastFocused = binding.etTitle; binding.btnRepMode.isChecked = false }
+        }
+        binding.etContent.setOnFocusChangeListener { _, has ->
+            if (has) { lastFocused = binding.etContent; binding.btnRepMode.isChecked = false }
         }
 
         binding.sliderImportance.addOnChangeListener { _, value, _ ->
@@ -234,13 +233,14 @@ class EntryEditorActivity : AppCompatActivity() {
     }
 
     private fun onStickerTap(name: String) {
-        when (stickerMode) {
-            "title" -> insertSticker(binding.etTitle, name)
-            "content" -> insertSticker(binding.etContent, name)
-            else -> {
-                sticker = if (sticker == name) "" else name
-                refreshStickerSelection()
-            }
+        if (binding.btnRepMode.isChecked) {
+            // '대표로 지정'이 켜져 있으면 → 대표(달력·목록) 이모티콘으로
+            sticker = if (sticker == name) "" else name
+            refreshStickerSelection()
+            toast(if (sticker.isEmpty()) "대표 이모티콘을 해제했어요" else "대표 이모티콘으로 지정했어요")
+        } else {
+            // 아니면 → 마지막으로 누른 글칸(제목/내용, 기본은 내용)에 넣는다
+            insertSticker(lastFocused ?: binding.etContent, name)
         }
     }
 
@@ -259,7 +259,7 @@ class EntryEditorActivity : AppCompatActivity() {
             val b = edit.selectionEnd.coerceAtLeast(0)
             e.replace(minOf(a, b), maxOf(a, b), tok)
         }
-        toast(if (stickerMode == "title") "제목에 이모티콘을 넣었어요" else "내용에 이모티콘을 넣었어요")
+        toast(if (edit === binding.etTitle) "제목에 이모티콘을 넣었어요" else "내용에 이모티콘을 넣었어요")
     }
 
     private fun themeMuted(): Int {

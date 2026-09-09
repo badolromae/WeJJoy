@@ -178,46 +178,22 @@
                     android:paddingBottom="2dp" />
             </HorizontalScrollView>
 
-            <TextView style="@style/SectionLabel" android:text="이모티콘 (60종)" />
+            <TextView style="@style/SectionLabel" android:text="이모티콘" />
 
-            <com.google.android.material.button.MaterialButtonToggleGroup
-                android:id="@+id/toggleStickerMode"
-                android:layout_width="match_parent"
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnRepMode"
+                style="@style/Widget.Material3.Button.OutlinedButton"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                app:selectionRequired="true"
-                app:singleSelection="true">
-
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btnModeRep"
-                    style="@style/Widget.Material3.Button.OutlinedButton"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="대표(달력)" />
-
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btnModeTitle"
-                    style="@style/Widget.Material3.Button.OutlinedButton"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="제목에" />
-
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btnModeContent"
-                    style="@style/Widget.Material3.Button.OutlinedButton"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="내용에" />
-            </com.google.android.material.button.MaterialButtonToggleGroup>
+                android:checkable="true"
+                android:text="⭐ 대표로 지정" />
 
             <TextView
                 android:id="@+id/tvStickerHint"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="2dp"
-                android:text="‘대표’는 달력 칸·목록에 그림으로 표시됩니다. ‘제목에/내용에’는 글 속에 이모티콘을 넣어요."
+                android:text="제목 칸이나 내용 칸을 누른 뒤 아래 이모티콘을 누르면 그 칸에 들어갑니다.\n달력·목록용 ‘대표’는 위 ‘대표로 지정’을 켠 뒤 이모티콘을 누르세요."
                 android:textColor="?attr/appTextMuted"
                 android:textSize="12sp" />
 

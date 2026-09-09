@@ -109,7 +109,7 @@ object Stickers {
     }
 
     /** "[[s:이름]]" 토큰을 글자 크기의 [scale]배 인라인 그림으로 바꾼다. (토큰 글자는 그림 뒤에 가려짐) */
-    fun applyInline(ctx: Context, text: CharSequence?, textSizePx: Float, scale: Float = 1.5f): CharSequence {
+    fun applyInline(ctx: Context, text: CharSequence?, textSizePx: Float, scale: Float = 3.0f): CharSequence {
         val src = text?.toString() ?: return ""
         if (!src.contains("[[s:")) return src
         val sb = SpannableStringBuilder(src)
