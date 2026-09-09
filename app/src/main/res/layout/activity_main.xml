@@ -1,18 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  전에는 CoordinatorLayout + AppBarLayout(scroll|enterAlways) 으로 이 화면을 만들었는데,
-  AppBarLayout 자체가 "이 영역을 손가락으로 바로 드래그하면 접힌다"는 동작을 내장하고 있어서
-  달력의 좌우 스와이프(월 이동) 제스처와 서로 터치를 먼저 가로채려고 충돌했다.
-  그래서 여기서는 CoordinatorLayout 없이 평범한 레이아웃으로 만들고, 목록(recyclerEntries)을
-  위아래로 드래그할 때 달력 부분(headerContainer)이 같이 접히고 펼쳐지는 건 MainActivity.kt 에서
-  스크롤 방향을 직접 보고 애니메이션으로 처리한다. (자세한 건 MainActivity.kt 의
-  setupHeaderCollapse() 참고)
-
-  최상위를 MainRootLayout 으로 둔 이유: 목록이 맨 위까지 스크롤된 뒤에도 계속 아래로 당기면
-  (더 스크롤할 곳이 없는 상태) 그 남은 드래그량을 받아서 달력을 다시 펼치기 위함이다.
-  (MainRootLayout.kt 의 onOverscrollDown 참고)
+  V3: 달력 + 선택한 날짜 정보 + 일기 목록을 하나의 NestedScrollView 안에 넣어
+  화면 전체가 함께 위아래로 스크롤된다. (공휴일/기념일 안내가 있어도 목록이 항상 보이고,
+  달력도 같이 슬라이딩된다.) 달력의 좌우 스와이프(월 이동)는 MonthCalendarView 가
+  가로 제스처만 가로채므로 세로 스크롤과 부딪히지 않는다.
 -->
-<com.jooshin.diary.ui.MainRootLayout
+<FrameLayout
     android:id="@+id/mainRoot"
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
@@ -34,152 +27,149 @@
             app:title="WeJJoy"
             app:titleTextColor="@color/white" />
 
-        <!-- 월 제목/이동 버튼 + 달력. 아래 목록을 위로 드래그하면 이 영역 전체가 같이 접힌다. -->
-        <LinearLayout
-            android:id="@+id/headerContainer"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:clipChildren="true"
-            android:clipToPadding="true">
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="center_vertical"
-                android:paddingStart="12dp"
-                android:paddingEnd="8dp"
-                android:paddingTop="10dp"
-                android:paddingBottom="6dp">
-
-                <TextView
-                    android:id="@+id/tvMonthTitle"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:background="?attr/selectableItemBackground"
-                    android:padding="4dp"
-                    android:text="2026년 8월"
-                    android:textColor="?attr/colorOnSurface"
-                    android:textSize="20sp"
-                    android:textStyle="bold" />
-
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btnToday"
-                    style="@style/Widget.Material3.Button.TextButton"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="오늘" />
-
-                <ImageButton
-                    android:id="@+id/btnPrevMonth"
-                    android:layout_width="42dp"
-                    android:layout_height="42dp"
-                    android:background="?attr/selectableItemBackgroundBorderless"
-                    android:contentDescription="이전 달"
-                    android:src="@drawable/ic_chevron_left"
-                    app:tint="?attr/colorOnSurfaceVariant" />
-
-                <ImageButton
-                    android:id="@+id/btnNextMonth"
-                    android:layout_width="42dp"
-                    android:layout_height="42dp"
-                    android:background="?attr/selectableItemBackgroundBorderless"
-                    android:contentDescription="다음 달"
-                    android:src="@drawable/ic_chevron_right"
-                    app:tint="?attr/colorOnSurfaceVariant" />
-            </LinearLayout>
-
-            <com.jooshin.diary.ui.MonthCalendarView
-                android:id="@+id/calendarView"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:paddingStart="6dp"
-                android:paddingEnd="6dp"
-                android:paddingBottom="6dp" />
-
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="1dp"
-                android:background="?attr/colorOutlineVariant" />
-        </LinearLayout>
-
-        <LinearLayout
+        <androidx.core.widget.NestedScrollView
+            android:id="@+id/mainScroll"
             android:layout_width="match_parent"
             android:layout_height="0dp"
             android:layout_weight="1"
-            android:orientation="vertical">
+            android:fillViewport="true">
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="center_vertical|bottom"
-                android:paddingStart="16dp"
-                android:paddingEnd="16dp"
-                android:paddingTop="12dp"
-                android:paddingBottom="1dp">
+                android:orientation="vertical"
+                android:paddingBottom="96dp">
+
+                <!-- 월 제목 / 오늘 / 이동 버튼 -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:paddingStart="12dp"
+                    android:paddingEnd="8dp"
+                    android:paddingTop="10dp"
+                    android:paddingBottom="6dp">
+
+                    <TextView
+                        android:id="@+id/tvMonthTitle"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:background="?attr/selectableItemBackground"
+                        android:padding="4dp"
+                        android:text="2026년 8월"
+                        android:textColor="?attr/colorOnSurface"
+                        android:textSize="20sp"
+                        android:textStyle="bold" />
+
+                    <ImageButton
+                        android:id="@+id/btnToday"
+                        android:layout_width="42dp"
+                        android:layout_height="42dp"
+                        android:background="?attr/selectableItemBackgroundBorderless"
+                        android:contentDescription="오늘로 이동"
+                        android:padding="9dp"
+                        android:src="@drawable/ic_today"
+                        app:tint="?attr/colorPrimary" />
+
+                    <ImageButton
+                        android:id="@+id/btnPrevMonth"
+                        android:layout_width="42dp"
+                        android:layout_height="42dp"
+                        android:background="?attr/selectableItemBackgroundBorderless"
+                        android:contentDescription="이전 달"
+                        android:src="@drawable/ic_chevron_left"
+                        app:tint="?attr/colorOnSurfaceVariant" />
+
+                    <ImageButton
+                        android:id="@+id/btnNextMonth"
+                        android:layout_width="42dp"
+                        android:layout_height="42dp"
+                        android:background="?attr/selectableItemBackgroundBorderless"
+                        android:contentDescription="다음 달"
+                        android:src="@drawable/ic_chevron_right"
+                        app:tint="?attr/colorOnSurfaceVariant" />
+                </LinearLayout>
+
+                <com.jooshin.diary.ui.MonthCalendarView
+                    android:id="@+id/calendarView"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:paddingStart="6dp"
+                    android:paddingEnd="6dp"
+                    android:paddingBottom="6dp" />
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:background="?attr/colorOutlineVariant" />
+
+                <!-- 선택한 날짜 -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical|bottom"
+                    android:paddingStart="16dp"
+                    android:paddingEnd="16dp"
+                    android:paddingTop="12dp"
+                    android:paddingBottom="1dp">
+
+                    <TextView
+                        android:id="@+id/tvSelectedDate"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="오늘"
+                        android:textColor="?attr/colorOnSurface"
+                        android:textSize="15sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/tvSelectedLunar"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="6dp"
+                        android:text=""
+                        android:textColor="?attr/appTextMuted"
+                        android:textSize="12sp" />
+                </LinearLayout>
 
                 <TextView
-                    android:id="@+id/tvSelectedDate"
-                    android:layout_width="wrap_content"
+                    android:id="@+id/tvSelectedInfo"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="오늘"
-                    android:textColor="?attr/colorOnSurface"
-                    android:textSize="15sp"
-                    android:textStyle="bold" />
-
-                <TextView
-                    android:id="@+id/tvSelectedLunar"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="6dp"
+                    android:paddingStart="16dp"
+                    android:paddingEnd="16dp"
+                    android:paddingBottom="4dp"
                     android:text=""
                     android:textColor="?attr/appTextMuted"
                     android:textSize="12sp" />
-            </LinearLayout>
 
-            <TextView
-                android:id="@+id/tvSelectedInfo"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:ellipsize="end"
-                android:maxLines="1"
-                android:paddingStart="16dp"
-                android:paddingEnd="16dp"
-                android:paddingBottom="4dp"
-                android:text=""
-                android:textColor="?attr/appTextMuted"
-                android:textSize="12sp" />
-
-            <FrameLayout
-                android:layout_width="match_parent"
-                android:layout_height="0dp"
-                android:layout_weight="1">
-
+                <!-- 일기 목록: NestedScrollView 안에서 통째로 스크롤되므로 자체 스크롤은 끈다 -->
                 <androidx.recyclerview.widget.RecyclerView
                     android:id="@+id/recyclerEntries"
                     android:layout_width="match_parent"
-                    android:layout_height="match_parent"
+                    android:layout_height="wrap_content"
+                    android:nestedScrollingEnabled="false"
                     android:clipToPadding="false"
                     android:paddingStart="12dp"
                     android:paddingEnd="12dp"
-                    android:paddingTop="4dp"
-                    android:paddingBottom="96dp" />
+                    android:paddingTop="4dp" />
 
                 <TextView
                     android:id="@+id/tvEmpty"
-                    android:layout_width="wrap_content"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_gravity="center"
-                    android:text="이 날의 기록이 없습니다.\n아래 + 버튼으로 추가하세요."
                     android:gravity="center"
+                    android:paddingTop="40dp"
+                    android:paddingBottom="40dp"
+                    android:text="이 날의 기록이 없습니다.\n아래 + 버튼으로 추가하세요."
                     android:textColor="?attr/appTextMuted"
                     android:textSize="14sp"
                     android:visibility="gone" />
-            </FrameLayout>
-        </LinearLayout>
+            </LinearLayout>
+        </androidx.core.widget.NestedScrollView>
     </LinearLayout>
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
@@ -194,4 +184,4 @@
         android:src="@drawable/ic_add"
         app:backgroundTint="?attr/colorPrimary"
         app:tint="@color/white" />
-</com.jooshin.diary.ui.MainRootLayout>
+</FrameLayout>
