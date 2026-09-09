@@ -337,7 +337,8 @@ function openEditor(entry){
   $('edEnd').value = String(e.endTimeMinutes ?? -1);
   $('edImp').value = e.importance||50; $('impVal').textContent = (e.importance||50)+'%';
   $('edTags').value = (e.tags||[]).join(', ');
-  S.edit._mode = S.edit._mode || 'rep'; renderMoodPicker(); renderStickerModeRow(); renderStickerPicker(); renderPhotoRow();
+  S.edit._repMode = false; S.edit._lastField = 'edContent';
+  renderMoodPicker(); renderStickerModeRow(); renderStickerPicker(); renderPhotoRow();
   $('edDelete').hidden = isNew;
   show('editorModal');
 }
@@ -363,10 +364,13 @@ function renderStickerPicker(){
       const b=document.createElement('button'); b.className='s'+(S.edit.sticker===name?' sel':''); b.title=label;
       b.innerHTML=`<img src="${stickerSrc(name)}" alt="${label}" loading="lazy">`;
       b.onclick=()=>{
-        const mode=S.edit._mode||'rep';
-        if(mode==='title') insertToken('edTitleInput', name);
-        else if(mode==='content') insertToken('edContent', name);
-        else { S.edit.sticker=(S.edit.sticker===name?'':name); S.edit.mood=''; renderMoodPicker(); }
+        if(S.edit._repMode){
+          // '대표로 지정'이 켜져 있으면 → 대표(달력·목록) 이모티콘
+          S.edit.sticker=(S.edit.sticker===name?'':name); S.edit.mood=''; renderMoodPicker();
+        } else {
+          // 아니면 → 마지막으로 누른 글칸(제목/내용, 기본은 내용)에 넣는다
+          insertToken(S.edit._lastField||'edContent', name);
+        }
         renderStickerPicker();
       };
       grid.appendChild(b);
@@ -376,11 +380,10 @@ function renderStickerPicker(){
 }
 function renderStickerModeRow(){
   const row=$('stickerModeRow'); if(!row) return; row.innerHTML='';
-  [['rep','대표(달력)'],['title','제목에'],['content','내용에']].forEach(([k,l])=>{
-    const b=document.createElement('button'); b.textContent=l; if((S.edit._mode||'rep')===k) b.className='sel';
-    b.onclick=()=>{ S.edit._mode=k; renderStickerModeRow(); };
-    row.appendChild(b);
-  });
+  const b=document.createElement('button');
+  b.textContent='⭐ 대표로 지정'; if(S.edit && S.edit._repMode) b.className='sel';
+  b.onclick=()=>{ S.edit._repMode=!S.edit._repMode; renderStickerModeRow(); };
+  row.appendChild(b);
 }
 function insertToken(id, name){
   const el=$(id); const tok=`[[s:${name}]]`;
@@ -641,6 +644,10 @@ $('btnSearch').onclick=openSearch; $('scClose').onclick=()=>hide('searchModal');
 $('dtClose').onclick=()=>hide('detailModal');
 $('dtEdit').onclick=()=>{ hide('detailModal'); if(S.detail) openEditor(S.detail); };
 $('edCancel').onclick=()=>hide('editorModal'); $('edSave').onclick=saveEntry; $('edDelete').onclick=deleteEntry;
+// 제목/내용 칸을 누르면 그 칸을 기억하고 '대표로 지정'은 끈다 → 이후 이모티콘 탭은 그 칸에 들어간다
+['edTitleInput','edContent'].forEach(id=>{ const el=$(id); if(el) el.addEventListener('focus',()=>{
+  if(S.edit){ S.edit._lastField=id; S.edit._repMode=false; renderStickerModeRow(); }
+}); });
 $('edImp').oninput=()=>$('impVal').textContent=$('edImp').value+'%';
 $('edUseEnd').onchange=()=>$('edEndRow').hidden=!$('edUseEnd').checked;
 $('edAddPhoto').onclick=()=>$('edPhoto').click();
