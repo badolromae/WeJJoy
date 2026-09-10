@@ -25,7 +25,7 @@ const STICKER_GROUPS = [
   ]]
 ];
 const STICKER_SET = new Set(STICKER_GROUPS.flatMap(([g,items])=>items.map(([n])=>n)));
-const WEB_VERSION = '3.1';
+const WEB_VERSION = '3.5';
 function firstInline(t){ const m=/\[\[s:([a-z0-9_]+)\]\]/.exec(t||''); return (m && STICKER_SET.has(m[1]))?m[1]:''; }
 function renderRich(t, big){ let h=escapeHtml(t||''); const cls=big?'inline-emo-big':'inline-emo'; return h.replace(/\[\[s:([a-z0-9_]+)\]\]/g,(m,n)=>STICKER_SET.has(n)?`<img class="${cls}" src="${stickerSrc(n)}" alt="">`:''); }
 const MOODS = ["😊","😄","😍","🥰","😌","😐","😢","😭","😠","😴","🤒","🎉","❤️","👍","🙏","💐","☕","🍚"];
