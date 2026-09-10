@@ -191,9 +191,10 @@ class EntryEditorActivity : AppCompatActivity() {
 
     // ---- 이모티콘(60종) ----
     private fun buildStickerPicker() {
-        val size = (46 * resources.displayMetrics.density).toInt()
-        val margin = (4 * resources.displayMetrics.density).toInt()
-        val pad = (5 * resources.displayMetrics.density).toInt()
+        // 고르는(선택) 이모티콘 썸네일을 약 3배로 크게 (46dp -> 138dp)
+        val size = (138 * resources.displayMetrics.density).toInt()
+        val margin = (6 * resources.displayMetrics.density).toInt()
+        val pad = (8 * resources.displayMetrics.density).toInt()
         for ((groupName, items) in Stickers.GROUPS) {
             val label = TextView(this).apply {
                 text = groupName
