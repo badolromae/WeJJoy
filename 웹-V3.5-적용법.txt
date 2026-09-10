@@ -1,0 +1,6 @@
+[WeJJoy 웹 V3.5 — 이모티콘 흰 테두리 버전으로 전면 교체]
+바뀐 것: public/stickers 의 png 123개(흰 테두리·투명배경) + public/app.js(버전 3.5).
+
+압축을 풀면 public 폴더가 나옵니다. 깃허브에서 Add file ▸ Upload files 에
+이 'public' 폴더를 드래그 → Commit. Actions 의 Deploy WeJJoy Web 초록불이면 끝.
+(안 바뀌면 Ctrl+F5 강력 새로고침)
