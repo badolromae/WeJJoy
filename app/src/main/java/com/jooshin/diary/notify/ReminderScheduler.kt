@@ -15,10 +15,21 @@ object ReminderScheduler {
     const val ACTION_DAILY = "com.jooshin.diary.alarm.DAILY"
     const val ACTION_ENTRY = "com.jooshin.diary.alarm.ENTRY"
     const val ACTION_MIDNIGHT = "com.jooshin.diary.alarm.MIDNIGHT"
+    const val ACTION_WIDGET_RESET = "com.jooshin.diary.alarm.WIDGET_RESET"
+    const val ACTION_BRIEF_DAILY = "com.jooshin.diary.alarm.BRIEF_DAILY"
+    const val ACTION_BRIEF_WEEKLY = "com.jooshin.diary.alarm.BRIEF_WEEKLY"
+    const val ACTION_BRIEF_MONTHLY = "com.jooshin.diary.alarm.BRIEF_MONTHLY"
     const val EXTRA_ENTRY_ID = "entry_id"
+
+    /** 무음 브리핑 시각 (새벽 5시) */
+    private const val BRIEF_HOUR = 5
 
     private const val RC_DAILY = 1001
     private const val RC_MIDNIGHT = 1002
+    private const val RC_WIDGET_RESET = 2001
+    private const val RC_BRIEF_DAILY = 3001
+    private const val RC_BRIEF_WEEKLY = 3002
+    private const val RC_BRIEF_MONTHLY = 3003
     private const val RC_ENTRY_BASE = 100000
 
     private fun am(c: Context): AlarmManager =
@@ -103,5 +114,53 @@ object ReminderScheduler {
         AppDatabase.get(c).diaryDao().getWithReminders().forEach { e ->
             if (e.reminderAtMillis > now) scheduleEntry(c, e)
         }
+    }
+
+    // ---------------------------------------------------------------- 위젯 자동 복귀
+    /** 위젯을 만진 뒤 일정 시간(3분) 후 '현재'로 되돌리기 위한 갱신 예약. */
+    fun scheduleWidgetReset(c: Context) {
+        val at = System.currentTimeMillis() + com.jooshin.diary.widget.WidgetState.IDLE_RESET_MS + 5000L
+        val pi = pending(c, ACTION_WIDGET_RESET, RC_WIDGET_RESET)
+        try {
+            // 화면이 꺼져 있으면 굳이 깨울 필요 없음(위젯이 안 보이므로) → RTC(비웨이크)
+            am(c).set(AlarmManager.RTC, at, pi)
+        } catch (t: Throwable) { /* 무시 */ }
+    }
+
+    // ---------------------------------------------------------------- 무음 브리핑
+    private fun at5am(dayShift: Int): Calendar = Calendar.getInstance().apply {
+        add(Calendar.DAY_OF_YEAR, dayShift)
+        set(Calendar.HOUR_OF_DAY, BRIEF_HOUR)
+        set(Calendar.MINUTE, 0); set(Calendar.SECOND, 0); set(Calendar.MILLISECOND, 0)
+    }
+
+    /** 매일 새벽 5시: 오늘 일기 제목 브리핑 */
+    fun scheduleBriefDaily(c: Context) {
+        val now = System.currentTimeMillis()
+        val cal = at5am(0)
+        if (cal.timeInMillis <= now) cal.add(Calendar.DAY_OF_YEAR, 1)
+        setExact(c, cal.timeInMillis, pending(c, ACTION_BRIEF_DAILY, RC_BRIEF_DAILY))
+    }
+
+    /** 매주 일요일 새벽 5시: 이번 주 일기 제목 브리핑 */
+    fun scheduleBriefWeekly(c: Context) {
+        val now = System.currentTimeMillis()
+        val cal = at5am(0)
+        while (cal.get(Calendar.DAY_OF_WEEK) != Calendar.SUNDAY || cal.timeInMillis <= now) {
+            cal.add(Calendar.DAY_OF_YEAR, 1)
+        }
+        setExact(c, cal.timeInMillis, pending(c, ACTION_BRIEF_WEEKLY, RC_BRIEF_WEEKLY))
+    }
+
+    /** 매월 1일 새벽 5시: 이번 달 일기 제목 브리핑 */
+    fun scheduleBriefMonthly(c: Context) {
+        val now = System.currentTimeMillis()
+        val cal = at5am(0).apply { set(Calendar.DAY_OF_MONTH, 1) }
+        if (cal.timeInMillis <= now) cal.add(Calendar.MONTH, 1)
+        setExact(c, cal.timeInMillis, pending(c, ACTION_BRIEF_MONTHLY, RC_BRIEF_MONTHLY))
+    }
+
+    fun scheduleBriefings(c: Context) {
+        scheduleBriefDaily(c); scheduleBriefWeekly(c); scheduleBriefMonthly(c)
     }
 }

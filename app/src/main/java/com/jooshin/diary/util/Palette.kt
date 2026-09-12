@@ -118,6 +118,17 @@ class Palette(private val ctx: Context, val theme: AppTheme) {
     val sun = c(R.color.cal_sun)
     val sat = c(R.color.cal_sat)
 
+    /** 특징색(accent) 바탕 위에 얹었을 때 잘 보이는 글자색: 특징색이 어두우면 흰색, 밝으면 진회색 */
+    val onAccent: Int = run {
+        val r = android.graphics.Color.red(accent)
+        val g = android.graphics.Color.green(accent)
+        val b = android.graphics.Color.blue(accent)
+        val lum = (0.299 * r + 0.587 * g + 0.114 * b) / 255.0
+        if (lum < 0.62) 0xFFFFFFFF.toInt() else 0xFF1B1B1B.toInt()
+    }
+    /** 위 색을 살짝 흐리게 (부제목용) */
+    val onAccentDim: Int = (onAccent and 0x00FFFFFF) or 0xCC000000.toInt()
+
     /** 위젯 배경/구역/오늘칸 그림 리소스 */
     val widgetBgRes = ids.widgetBg
     val widgetSectionRes = ids.widgetSection

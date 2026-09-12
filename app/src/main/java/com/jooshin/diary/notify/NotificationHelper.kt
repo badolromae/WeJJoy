@@ -23,8 +23,12 @@ object NotificationHelper {
     private const val CH_SOUND = "diary_sound"
     private const val CH_VIBRATE = "diary_vibrate"
     private const val CH_SILENT = "diary_silent"
+    private const val CH_BRIEF = "diary_brief"   // 무음 브리핑 전용
 
     private const val ID_DAILY = 1
+    const val ID_BRIEF_DAILY = 11
+    const val ID_BRIEF_WEEKLY = 12
+    const val ID_BRIEF_MONTHLY = 13
 
     fun createChannels(c: Context) {
         val nm = c.getSystemService(NotificationManager::class.java) ?: return
@@ -48,6 +52,7 @@ object NotificationHelper {
         nm.createNotificationChannel(make(CH_SOUND, "일기 알림 (소리)", NotificationManager.IMPORTANCE_HIGH, true, false))
         nm.createNotificationChannel(make(CH_VIBRATE, "일기 알림 (진동)", NotificationManager.IMPORTANCE_HIGH, false, true))
         nm.createNotificationChannel(make(CH_SILENT, "일기 알림 (무음)", NotificationManager.IMPORTANCE_LOW, false, false))
+        nm.createNotificationChannel(make(CH_BRIEF, "일기 브리핑 (무음)", NotificationManager.IMPORTANCE_LOW, false, false))
     }
 
     private fun channelForStyle(c: Context): String = when (Prefs.notifyStyle(c)) {
@@ -109,6 +114,33 @@ object NotificationHelper {
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .build()
         safeNotify(c, (3000 + entry.id).toInt(), n)
+    }
+
+    /** 무음 브리핑(오늘/이번주/이번달 제목 모음)을 조용히 띄운다. */
+    @SuppressLint("MissingPermission")
+    fun notifyBriefing(c: Context, id: Int, title: String, body: String) {
+        val intent = Intent(c, MainActivity::class.java).apply {
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
+            putExtra(MainActivity.EXTRA_DATE, DateUtil.today())
+        }
+        val pi = PendingIntent.getActivity(
+            c, 4000 + id, intent,
+            PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
+        )
+        val firstLine = body.lineSequence().firstOrNull().orEmpty()
+        val n = NotificationCompat.Builder(c, CH_BRIEF)
+            .setSmallIcon(R.drawable.ic_stat_diary)
+            .setColor(ContextCompat.getColor(c, R.color.brand))
+            .setContentTitle(title)
+            .setContentText(firstLine)
+            .setStyle(NotificationCompat.BigTextStyle().bigText(body).setBigContentTitle(title))
+            .setAutoCancel(true)
+            .setContentIntent(pi)
+            .setOnlyAlertOnce(true)
+            .setSilent(true)                                  // 소리·진동 없음
+            .setPriority(NotificationCompat.PRIORITY_LOW)
+            .build()
+        safeNotify(c, id, n)
     }
 
     private fun safeNotify(c: Context, id: Int, n: android.app.Notification) {

@@ -17,6 +17,7 @@ class BootReceiver : BroadcastReceiver() {
             try {
                 ReminderScheduler.scheduleDaily(context)
                 ReminderScheduler.scheduleMidnight(context)
+                ReminderScheduler.scheduleBriefings(context)
                 val now = System.currentTimeMillis()
                 AppDatabase.get(context).diaryDao().getWithReminders().forEach { e ->
                     if (e.reminderAtMillis > now) ReminderScheduler.scheduleEntry(context, e)

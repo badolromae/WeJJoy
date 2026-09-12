@@ -32,14 +32,16 @@ class MonthWidgetProvider : BaseCalendarWidget() {
     override fun step(anchor: Long, dir: Int): Long = DateUtil.addMonths(anchor, dir)
 
     override fun render(c: Context, mgr: AppWidgetManager, id: Int) {
-        val anchor = WidgetState.getAnchor(c, id, defaultAnchor())
+        val anchor = WidgetState.effectiveAnchor(c, id, defaultAnchor())
         val p = Palette.of(c)
         val views = RemoteViews(c.packageName, R.layout.widget_month)
         views.setInt(R.id.widget_root, "setBackgroundResource", p.widgetBgRes)
-        views.setTextColor(R.id.month_title, p.textPrimary)
-        views.setTextColor(R.id.month_sub, p.textMuted)
+        // 상단바(월 표시부)를 특징색으로 진하게, 글씨/아이콘은 반대색으로
+        views.setInt(R.id.header_bar, "setBackgroundColor", p.accent)
+        views.setTextColor(R.id.month_title, p.onAccent)
+        views.setTextColor(R.id.month_sub, p.onAccentDim)
         for (b in intArrayOf(R.id.btn_today, R.id.btn_prev, R.id.btn_next)) {
-            views.setInt(b, "setColorFilter", p.textSecondary)
+            views.setInt(b, "setColorFilter", p.onAccent)
         }
 
         views.setTextViewText(R.id.month_title, DateUtil.formatMonthTitle(anchor))

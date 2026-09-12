@@ -18,13 +18,15 @@ class WeekWidgetProvider : BaseCalendarWidget() {
     override fun step(anchor: Long, dir: Int): Long = anchor + dir * 7L
 
     override fun render(c: Context, mgr: AppWidgetManager, id: Int) {
-        val anchor = WidgetState.getAnchor(c, id, defaultAnchor())
+        val anchor = WidgetState.effectiveAnchor(c, id, defaultAnchor())
         val p = Palette.of(c)
         val views = RemoteViews(c.packageName, R.layout.widget_week)
         views.setInt(R.id.widget_root, "setBackgroundResource", p.widgetBgRes)
-        views.setTextColor(R.id.week_title, p.textPrimary)
+        // 상단바(주 표시부)를 특징색으로 진하게, 글씨/아이콘은 반대색으로
+        views.setInt(R.id.header_bar, "setBackgroundColor", p.accent)
+        views.setTextColor(R.id.week_title, p.onAccent)
         for (b in intArrayOf(R.id.btn_today, R.id.btn_prev, R.id.btn_next)) {
-            views.setInt(b, "setColorFilter", p.textSecondary)
+            views.setInt(b, "setColorFilter", p.onAccent)
         }
         val title = "${DateUtil.formatShortDate(anchor)} ~ ${DateUtil.formatShortDate(anchor + 6)}"
         views.setTextViewText(R.id.week_title, title)

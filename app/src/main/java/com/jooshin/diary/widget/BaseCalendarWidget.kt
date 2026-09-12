@@ -38,11 +38,13 @@ abstract class BaseCalendarWidget : AppWidgetProvider() {
             )
             if (id == AppWidgetManager.INVALID_APPWIDGET_ID) return
             val newAnchor = when (action) {
-                WidgetCommon.ACTION_PREV -> step(WidgetState.getAnchor(context, id, defaultAnchor()), -1)
-                WidgetCommon.ACTION_NEXT -> step(WidgetState.getAnchor(context, id, defaultAnchor()), +1)
+                WidgetCommon.ACTION_PREV -> step(WidgetState.effectiveAnchor(context, id, defaultAnchor()), -1)
+                WidgetCommon.ACTION_NEXT -> step(WidgetState.effectiveAnchor(context, id, defaultAnchor()), +1)
                 else -> defaultAnchor()
             }
-            WidgetState.setAnchor(context, id, newAnchor)
+            WidgetState.setAnchor(context, id, newAnchor)   // 조작 시각도 함께 저장됨
+            // 3분 뒤 '현재'로 자동 복귀시키기 위한 예약
+            com.jooshin.diary.notify.ReminderScheduler.scheduleWidgetReset(context)
             runOffMainThread {
                 val mgr = AppWidgetManager.getInstance(context) ?: return@runOffMainThread
                 safeRender(context, mgr, id)
